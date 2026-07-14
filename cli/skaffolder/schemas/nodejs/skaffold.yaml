@@ -1,0 +1,18 @@
+---
+apiVersion: skaffold/v3alpha1
+kind: Config
+metadata:
+  name: {{ name }}
+profiles:
+- name: dev
+  manifests:
+    rawYaml:
+      - manifests/k8s-dev-*
+- name: qa
+  manifests:
+    rawYaml:
+      - manifests/k8s-qa-*
+- name: prod
+  manifests:
+    rawYaml:
+      - manifests/k8s-prod-*

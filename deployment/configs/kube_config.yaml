@@ -1,0 +1,49 @@
+kube_namespaces:
+  - namespace
+  - kubernetes-dashboard
+  - networking
+  - prom-grafana-stack
+
+kube_node_groups:
+  - {} #empty object means 1 node with default configs defined in defaults.yml
+
+kube_infra_service_accounts:
+  admin-sac:
+    namespaces:
+      - namespace
+  external-dns:
+    namespaces:
+      - networking
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::{ACCOUNT_ID}:role/ExternalDnsServiceAccountRole
+
+kube_cluster_roles:
+  external-dns:
+    rules:
+      - apiGroups: [""]
+        resources: ["services", "endpoints", "pods"]
+        verbs: ["get", "watch", "list"]
+      - apiGroups: ["extensions", "networking.k8s.io"]
+        resources: ["ingresses"]
+        verbs: ["get", "watch", "list"]
+      - apiGroups: [""]
+        resources: ["nodes"]
+        verbs: ["watch", "list"]
+
+
+kube_role_bindings:
+  - kind: ServiceAccount
+    name: admin-sac
+    namespace: namespace
+    bindings:
+      - api_group: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: "@cluster-admin"
+        
+  - kind: ServiceAccount
+    name: external-dns
+    namespace: networking
+    bindings:
+      - api_group: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: external-dns

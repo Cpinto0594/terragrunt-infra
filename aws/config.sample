@@ -1,0 +1,11 @@
+[profile Developer]
+region = us-west-2
+output = json
+
+[default]
+aws_access_key_id = 
+aws_secret_access_key =  
+role_arn = arn:aws:iam::975050324669:role/Developer
+region = us-west-2
+output = json
+source_profile=Developer

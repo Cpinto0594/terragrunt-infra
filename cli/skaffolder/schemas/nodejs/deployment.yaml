@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ name }}
+  namespace: {{ namespace }}
+  labels:
+      app: {{ name }}
+  annotations:
+    skaffolder/branch-name: "{{ BRANCH_NAME }}"
+    skaffolder/commit-sha: "{{ COMMIT_SHA }}"
+    skaffolder/repo-name: "{{ REPO_NAME }}"
+    skaffolder/short-sha: "{{ SHORT_SHA }}"
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: {{ name }}
+  template:
+    metadata:
+      labels:
+        app: {{ name }}
+    spec:
+      {{#if workload_identity}}
+      serviceAccountName: {{ name }}
+      {{/if}}
+      containers:
+      - name: {{ name }}
+        image: {{APP_IMAGE}}
+        ports:
+        - containerPort: {{ port }}
+          name: web
+          protocol: TCP
+        resources:
+          limits:
+            cpu: {{ cpu_limit }}
+            memory: {{ mem_limit }}
+          requests:
+            cpu: {{ cpu_request }}
+            memory: {{ mem_request }}
+{{#if (isObject env_variables)}}
+        env:
+        - name: ENV
+          value: {{ target }}
+  {{#each env_variables as | variable key | }}
+        - name: {{ key }}
+          {{#if (not ( isString variable )) }}
+          value:  "{{variable}}"
+          {{/if}}
+          {{#if ( isString variable )}}
+          value: {{replace variable '\' "\\"}}
+          {{/if}}
+  {{/each}}
+{{/if}}

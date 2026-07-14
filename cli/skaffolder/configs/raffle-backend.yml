@@ -1,0 +1,46 @@
+defaults:
+  name: raffle-backend
+  port: 8080
+  description: Raffle Backend
+  env_variables:
+    APP_PORT: 8080
+    APP_PAYMENTS_FOLDER: D:\Code\yesid\app\orders\pay-support
+    APP_SOCKETS_CORS: (https?:\/\/)?([\w*\-\.]*)+(\.o-entertmt\.)+(online|com)+ (https?(\:\/\/)?)?localhost(:[0-9]{1,10})?
+    APP_DB_DATABASE: raffle_db
+    APP_DB_PORT: 54321
+    APP_TYPE_ORM_SYNCHRONIZE: true
+    APP_TYPE_ORM_ENABLE_LOGGING: true
+    APP_TYPE_ORM_ENABLE_DEBUGGING: false
+    APP_TYPE_ORM_ADQUIRE_TIMEOUT: 10000
+    JWT_AUTH_EXPIRATION: 1h
+    JWT_AUTH_REFRESH_EXPIRATION: 1d
+    JWT_APPS_EXPIRATION: 1000d
+    MAIL_HOST: smtp.gmail.com
+    MAIL_USER: entertmt.apps.online@gmail.com
+    MAIL_PASSWORD: "ZmRidSBwdGx4IHloanogYW5ldg=="
+    MAIL_PORT: 465
+    MAIL_IS_SECURE: true
+    MAIL_FROM: "Raffle Online <entertmt.apps.online@gmail.com>"
+
+dev:
+  name: dev-raffle-backend
+  env_variables:
+    APP_DB_HOST: raffle-db.dev.renderapps.net
+    APP_DB_USER: raffledb_master_user
+    APP_DB_PASSWORD: raffledb_master_password
+    JWT_AUTH_SECRET: IQhIQhoSp167zUa6j1YpiUP8yhVbZlKmfKUoSp167zUa6j1YpiUP8yhVbZlKmfKUIQhoSp167zUa6j1YpiUP8yhVbZlKmfKU
+    JWT_APPS_SECRET: IQhIQhoSp167zUa6j1YpiUQhoSp167zUa6j1YpiUP8yhVbZlKmfKUoSp167zUa6jp167zUa6j1YpiUP8yhVbZlKmfKUIQhoSp167zUa6j1YpiUP8yhVbZlKmfKU
+
+qa:
+  name: qa-raffle-backend
+  env_variables:
+    APP_DB_HOST: raffle-db.qa.renderapps.net
+    JWT_AUTH_SECRET: IQhIQhoSp167zUa6j1YpiUP8yhVbZlKmfKUoSp167zUa6j1YpiUP8yhVbZlKmfKUIQhoSp167zUa6j1YpiUP8yhVbZlKmfKU
+    JWT_APPS_SECRET: IQhIQhoSp167zUa6j1YpiUQhoSp167zUa6j1YpiUP8yhVbZlKmfKUoSp167zUa6jp167zUa6j1YpiUP8yhVbZlKmfKUIQhoSp167zUa6j1YpiUP8yhVbZlKmfKU
+
+prod:
+  env_variables:
+    APP_DB_HOST: raffle-db.renderapps.net
+    APP_TYPE_ORM_ENABLE_LOGGING: true
+    JWT_AUTH_SECRET: IQhIQhoSp167zUa6j1YpiUP8yhVbZlKmfKUoSp167zUa6j1YpiUP8yhVbZlKmfKUIQhoSp167zUa6j1YpiUP8yhVbZlKmfKU
+    JWT_APPS_SECRET: IQhIQhoSp167zUa6j1YpiUQhoSp167zUa6j1YpiUP8yhVbZlKmfKUoSp167zUa6jp167zUa6j1YpiUP8yhVbZlKmfKUIQhoSp167zUa6j1YpiUP8yhVbZlKmfKU

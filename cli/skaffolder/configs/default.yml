@@ -1,0 +1,45 @@
+defaults:
+  name: default
+  description: Default Project
+  target: default
+  cert_manager: true
+  cert_manager_name: "letsencrypt"
+  cpu_limit: 250m
+  cpu_request: 25m
+  domain: renderapps.net
+  mem_limit: 512Mi
+  mem_request: 128Mi
+  min_replicas: 1
+  max_replicas: 3
+  metrics_endpoint: /metrics
+  namespace: default
+  port: 8080
+  replicas: 1
+  region: us-west-2
+  ssl_redirect: true
+  ssl_secret: true
+  target_cpu_utilization_percentage: 50
+  target_memory_averagevalue_megabytes: 100
+  verify_deployment: false
+  workload_identity: true
+  apply_label: true
+
+dev:
+  name: dev
+  target: dev
+  domain: dev.renderapps.net
+  namespace: dev-namespace
+
+
+qa:
+  name: qa
+  target: qa
+  domain: qa.renderapps.net
+  namespace: qa-namespace
+
+prod:
+  name: prod
+  target: prod
+  domain: renderapps.net
+  replicas: 3
+  namespace: prod-namespace

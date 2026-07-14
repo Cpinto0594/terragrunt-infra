@@ -1,0 +1,9 @@
+build_service_template:
+  security_groups:
+  - eks_cluster_sec_group
+  source:
+    type: BITBUCKET
+    buildspec: buildspec.yml
+  service_role:
+  environment:
+    env_vars:

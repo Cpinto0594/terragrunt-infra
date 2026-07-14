@@ -1,0 +1,20 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DEVPolicyPermissionsForDevRole",
+            "Effect": "Allow",
+            "Resource": "*",
+            "Action": [
+                "s3:*",
+                "ec2:*",
+                "eks:*",
+                "ssm:*",
+                "ecr:*",
+                "iam:*",
+                "ecs:*",
+                "sqs:*"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,79 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKERFILE: Dockerfile
+    NVM_VERSION: v0.39.7
+    NODE_VERSION: v21.5.0
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${account_id}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      
+      - echo Setting build values...
+      - REPOSITORY_NAME="${environment}-${namespace}-${project}"
+      - REPOSITORY_URI="${account_id}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${REPOSITORY_NAME}"
+
+      - chmod +x ./Codebuild/scripts/install_nodejs.sh
+      - ./Codebuild/scripts/install_nodejs.sh
+
+      - chmod +x ./Codebuild/scripts/install_skaffolder.sh
+      - ./Codebuild/scripts/install_skaffolder.sh ./cli/skaffolder
+
+  
+  build:
+    commands:
+      - mkdir cicd
+      - mv $CODEBUILD_SRC_DIR_project_code/* cicd/
+      - cd cicd
+      - echo Build Image
+      - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - IMAGE_TAG=${IMAGE_TAG:=buildx}
+      - IMAGE_TAG=${IMAGE_TAG:0:6}
+
+      - echo Build started on `date`
+      - echo Building project the Docker image...
+      - docker build -f $DOCKERFILE -t $REPOSITORY_URI:latest .
+      - echo Image Build completed on `date`
+      
+      - echo Tagging Image
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+
+      - echo Verifiying Project repository $REPOSITORY_URI
+      - aws ecr describe-repositories --repository-names $REPOSITORY_NAME || ( echo "Repository $REPOSITORY_NAME not found." && REPO_NOT_FOUND="true" )
+
+      - |
+          if [ "$REPO_NOT_FOUND" == "true" ]; then
+            echo "Creating ECR repository $REPOSITORY_URI"
+            aws ecr create-repository --repository-name $REPOSITORY_NAME
+          fi;
+
+      - echo Pushing Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+
+      #Scaffolder variables
+      - COMMIT_SHA=$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - REPO_NAME=https://bitbucket.org/$REPO_NAME
+      - SHORT_SHA=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:6}
+      - APP_IMAGE=$REPOSITORY_URI:$IMAGE_TAG
+
+      - echo $BRANCH_NAME - $COMMIT_SHA - $REPO_NAME - $SHORT_SHA - $APP_IMAGE
+
+      - echo building scaffold manifests
+      - skaffolder init  --env "${environment}" --name "${namespace}-${project}" --schema nodejs
+  
+  post_build:
+    commands:
+    - echo Image Push completed on `date`
+    - echo Image Tag = $IMAGE_TAG
+
+artifacts:
+  base-directory: cicd
+  files:
+    - '**/*'
+  exclude-paths: 
+      - ./**/node_modules
+

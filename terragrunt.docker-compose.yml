@@ -1,0 +1,61 @@
+version: '3.1'
+services:
+   terragrunt:
+    image: alpine/terragrunt:1.6.6
+    volumes:
+      - ./deployment:/dev/terragrunt
+    command: ["bash"]
+  
+
+
+#docker run -ti --rm -v $HOME/.aws:/root/.aws -v ${HOME}/.ssh:/root/.ssh -v .:/apps alpine/terragrunt:1.7.4 bash
+#terragrunt run-all show -json plan > plan.json
+
+#terragrunt run-all plan --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/main/ -out=tfplan
+#terragrunt run-all apply --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/main/ --parallelism=4  tfplan
+
+#terragrunt run-all plan --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes/ -out=tfplan
+#terragrunt run-all apply --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes/ --parallelism=4  tfplan
+
+#terragrunt run-all plan --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/prom-grafana-stack/ -out=tfplan
+#terragrunt run-all apply --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/prom-grafana-stack/ --parallelism=4  tfplan
+
+#terragrunt run-all destroy  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/prom-grafana-stack/
+#terragrunt run-all destroy  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all destroy  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/main
+
+#terragrunt run-all output --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all init --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/ --terragrunt-log-level debug --terragrunt-debug
+
+#terragrunt run-all init -migrate-state --terragrunt-working-dir deployment/dev/us-west-2/core/
+#terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core
+#terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/projects/raffle
+#To remove a lock go to dynamo table and remove the item with info column
+
+#aws sts assume-role --role-arn "arn:aws:iam::324711057459:role/Developer" --role-session-name AWSCLI-Session 
+#aws sts get-caller-identity
+
+#aws eks update-kubeconfig --region us-west-2 --name dev_infra_cluster 
+#kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+#kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.4.2/components.yaml
+#kubectl -n dev-kubernetes-dashboard  port-forward svc/dev-kubernetes-dashboard-kong-proxy 8443:443 &
+#kubectl -n dev-prom-grafana-stack  port-forward svc/kube-prometheus-stack-grafana 3000:80 &
+#kubectl -n dev-namespace create token dev-admin-sac --duration=45000s
+#ps -ef | grep port-forward
+#kubectl proxy
+
+
+#terragrunt run-all state rm module.module_kubernetes.aws_eks_cluster.eks_cluster --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all state rm module.module_core_setup_kubernetes.data.aws_eks_cluster_auth.aws_eks_cluster --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all state rm module.module_core_setup_kubernetes.helm_release.ingress-nginx --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all state rm module.module_core_setup_kubernetes.helm_release.kubernetes-dashboard --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all state rm module.module_core_setup_kubernetes.kubernetes_namespace.namespaces[\"networking\"] --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes 
+#terragrunt run-all state rm module.module_kubernetes.data.aws_iam_role.kube_iam_sec_role --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+#terragrunt run-all state rm module.module_kubernetes.data.aws_security_group.kube_sec_groups[\"eks_cluster_sec_group\"] --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes 
+#terragrunt run-all state rm module.module_kubernetes.aws_cloudwatch_log_group.kube_cluster_cloudwatch_logs --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes 
+#terragrunt run-all state rm module.module_kubernetes.aws_eks_cluster.eks_cluster --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
+
+#curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+#unzip awscliv2.zip
+#sudo ./aws/install

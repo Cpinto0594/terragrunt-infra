@@ -1,0 +1,45 @@
+{
+  "name": "skaffolder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf dist && tsc && echo '#!/usr/bin/env node' | cat - dist/cli.js > temp && mv temp dist/cli.js",
+    "skaffolder-install": "npm i && npm run build && npm i -g",
+    "start": "npm run build && node -r tsconfig-paths/register -r ts-node/register dist/cli.js"
+  },
+  "bin": {
+    "skaffolder": "dist/cli.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cmd-promise": "^1.2.0",
+    "dotenv": "^16.4.5",
+    "handlebars": "^4.7.8",
+    "handlebars-helpers": "^0.10.0",
+    "js-yaml": "^3.14.1",
+    "json-to-pretty-yaml": "^1.2.2",
+    "meow": "^9.0.0",
+    "module-alias": "^2.2.3",
+    "ora": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "18.11.18",
+    "eslint": "^8.0.1",
+    "prettier": "^2.8.8",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.4.2"
+  },
+  "_moduleAliases": {
+    "@utilities": "dist/utilities",
+    "@build": "dist/build",
+    "@create": "dist/create",
+    "@start": "dist/start"
+  }
+}

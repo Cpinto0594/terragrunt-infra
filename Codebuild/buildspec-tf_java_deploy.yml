@@ -1,0 +1,39 @@
+version: 0.2
+
+
+phases:
+  pre_build:
+    commands:
+      - echo "Hello from plan ${CODEBUILD_RESOLVED_SOURCE_VERSION} - ${CODEBUILD_SRC_DIR}"
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${account_id}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
+      - echo Setting build values...
+      - REPOSITORY_NAME="${environment}-${namespace}-${project}"
+      - REPOSITORY_URI="${account_id}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${REPOSITORY_NAME}"
+      - CLUSTER_NAME=${environment}_infra_cluster
+      - KUBE_NAMESPACE=${environment}_namespace
+
+      - chmod +x ./Codebuild/scripts/install_kubectl.sh
+      - ./Codebuild/scripts/install_kubectl.sh
+
+      - chmod +x ./Codebuild/scripts/install_skaffold.sh
+      - ./Codebuild/scripts/install_skaffold.sh
+
+
+  build:
+    commands:
+      - echo $CODEBUILD_SRC_DIR_project_build
+      - ls $CODEBUILD_SRC_DIR_project_build
+      - cd $CODEBUILD_SRC_DIR_project_build
+
+      - aws eks update-kubeconfig --name $CLUSTER_NAME  --region $AWS_DEFAULT_REGION --role-arn arn:aws:iam::${account_id}:role/Developer
+
+      #- cat /root/.kube/config
+      - kubectl --kubeconfig=/root/.kube/config get svc
+
+      - echo Applying skaffold configuration
+      - skaffold render --profile=${environment} --output manifest.yaml --filename=skaffold.yaml
+      - echo Kubernetes config
+      - cat manifest.yaml
+      - skaffold apply --kubeconfig=/root/.kube/config  --profile=${environment} --filename=skaffold.yaml manifest.yaml

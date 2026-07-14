@@ -1,0 +1,24 @@
+cluster_defaults:
+  role_arn: EksClustersServiceRole
+  cluster_security_groups:
+    - eks_cluster_sec_group
+  logs_retention_days: 30
+  cluster_version: '1.31'
+  enabled_cluster_log_types:
+    - api
+    - controllerManager
+
+cluster_node_defaults:
+  node_group_role: EksClustersNodeGroupsServiceRole
+  instance_types:
+    - t3.small
+  ami_type: AL2_x86_64
+  disk_size: 50
+  capacity_type: ON_DEMAND
+  scaling_config:
+    desired_size: 2
+    max_size: 3
+    min_size: 1
+  update_config:
+    max_unavailable: 1
+

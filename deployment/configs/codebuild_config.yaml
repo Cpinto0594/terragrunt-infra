@@ -1,0 +1,9 @@
+iac_core_codebuild_projects:
+  raffle_backend:
+    service_role: raffle_backend_service_role
+    security_groups:
+    - eks_cluster_sec_group
+    environment:
+      env_vars:
+      - name: project
+        value: raffle
