@@ -35,9 +35,10 @@ if ! grep -q "^\[profile $ROLE_NAME\]$" "$HOME/.aws/config"; then
 fi
 
 
-echo "====================== AWS Sign In =========================="
-aws sso login --profile $ADMIN_USER_SSO_PROFILE
-
+if ! grep -q "^\[profile $ADMIN_USER_SSO_PROFILE\]" "$HOME/.aws/config"; then
+    echo "====================== AWS Sign In =========================="
+    aws sso login --profile $ADMIN_USER_SSO_PROFILE
+fi
 
 cp "./aws/credentials.sample" "$HOME/.aws/credentials"
 #sed '/role_arn/s/^/#/' $HOME/.aws/config > ./tmp_file && mv ./tmp_file $HOME/.aws/config

@@ -27,12 +27,17 @@ locals {
     #apps_security_groups                        =   local.security_groups_config.apps_security_groups
 
     #Module IAM
+    aws_iam_config                              =   yamldecode(file("../../configs/aws-core/iam_config.yaml"))
     iam_config                                  =   yamldecode(file("../../configs/iam_config.yaml"))
     app_roles_aws_service_list                  =   local.iam_config.app_roles_aws_service_list
     app_service_roles_managed_policies          =   local.iam_config.app_service_roles_managed_policies
 
    
     #Roles for Infrastructure configuratiion
+    aws_core_roles                              =   local.aws_iam_config.aws_core_roles #initial aws configuration
+    aws_core_managed_policies                   =   local.aws_iam_config.infra_managed_policies #initial aws configuration
+    aws_core_users                              =   local.aws_iam_config.aws_core_users #initial aws configuration
+
     infra_core_roles                            =   local.iam_config.infra_core_roles
     infra_managed_policies                      =   local.iam_config.infra_managed_policies
 

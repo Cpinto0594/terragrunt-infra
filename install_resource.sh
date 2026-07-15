@@ -1,8 +1,8 @@
 #!/bin/bash
 echo Installing Terraform and Terragrunt...
 
-TF_VERSION=1.7.4
-TG_VERSION=v0.55.13
+TF_VERSION=1.15.8
+TG_VERSION=v1.1.1
 
 
 echo Installing JQ ...

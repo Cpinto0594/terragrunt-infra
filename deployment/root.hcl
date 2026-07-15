@@ -56,12 +56,11 @@ terraform {
 }
 provider "aws" {
   region = "${local.aws_region}"
-   assume_role {
-    role_arn    =  "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
-  }
+  profile = "AdminSSO"
 }
 EOF
 }
+
 
 remote_state {
   backend = "s3"
@@ -69,25 +68,31 @@ remote_state {
     path      = "backend.tf"
     if_exists = "overwrite_terragrunt"
   }
+
   config = {
-    bucket            = "${local.account_vars.locals.account_id}-${local.state_bucket}"
-    key               = "${path_relative_to_include()}/terraform.tfstate"
-    #role_arn          = "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
-    assume_role       = {
-      role_arn        =  "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
-      session_name    =  "${local.account_vars.locals.tg_role_name}_session"
-    }
-    region            = "${local.aws_region}"
-    encrypt           = true
-    dynamodb_table    = "${local.dynamodb_table}"
-    s3_bucket_tags  = {
+    profile = "AdminSSO"
+    bucket = "${local.account_vars.locals.account_id}-${local.state_bucket}"
+    key    = "${path_relative_to_include()}/terraform.tfstate"
+    #role_arn = "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
+    # assume_role = {
+    #   role_arn     = "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
+    #   session_name = "${local.account_vars.locals.tg_role_name}_session"
+    # }
+
+    region  = "${local.aws_region}"
+    encrypt = true
+    #dynamodb_table = "${local.dynamodb_table}"
+    use_lockfile = true
+    s3_bucket_tags = {
       terraform = "true"
     }
-    dynamodb_table_tags =  {
+
+    dynamodb_table_tags = {
       terraform = "true"
     }
   }
 }
+
 
 # Combine all account, region and environment variables as Terragrunt input parameters.
 # The input parameters can be used in Terraform configurations as Terraform variables.  

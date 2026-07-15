@@ -84,13 +84,19 @@ module "module_codepipeline" {
 
   depends_on = [
       module.module_iam , module.module_security_groups , module.module_vpc, module.module_codebuild,
-      aws_codestarconnections_connection.codepipeline_conections
+      aws_codestarconnections_connection.codepipeline_connections_bitbucket,
+      aws_codestarconnections_connection.codepipeline_connections_github
   ]  
 }
 
-resource "aws_codestarconnections_connection" "codepipeline_conections" {
-  name          = "bitbucket_cs_conections"
+resource "aws_codestarconnections_connection" "codepipeline_connections_bitbucket" {
+  name          = "bitbucket_cs_connections"
   provider_type = "Bitbucket"
+}
+
+resource "aws_codestarconnections_connection" "codepipeline_connections_github" {
+  name          = "github_cs_connections"
+  provider_type = "GitHub"
 }
 
 # resource "aws_route53_zone" "primary" {

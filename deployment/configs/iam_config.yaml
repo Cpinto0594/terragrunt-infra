@@ -8,6 +8,7 @@ app_roles_aws_service_list:
   - codepipeline.amazonaws.com
   - eks.amazonaws.com
 
+#NEEDED?
 app_roles: 
   - raffle_backend_service_role
   - identity_oauth2_service_role
@@ -59,6 +60,22 @@ infra_managed_policies:
             - route53:ListHostedZones
             - route53:ListResourceRecordSets
             - route53:ListTagsForResource
+          Resource:
+            - "*"
+  CodeStartConnections_Policy:
+    policy:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Action:
+            - codestar-connections:CreateConnection
+            - codestar-connections:DeleteConnection
+            - codestar-connections:UseConnection
+            - codestar-connections:GetConnection
+            - codestar-connections:ListConnections
+            - codestar-connections:TagResource
+            - codestar-connections:ListTagsForResource
+            - codestar-connections:UntagResource
           Resource:
             - "*"
 

@@ -7,7 +7,7 @@ locals {
   region_vars      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
   namespace_vars   = read_terragrunt_config(find_in_parent_folders("namespace.hcl"))
 
-  base_source = "${dirname(find_in_parent_folders())}/..//${local.terra_mod_name}"
+  base_source = "${dirname(find_in_parent_folders("root.hcl"))}/..//${local.terra_mod_name}"
 
   #Temp variable to 
   iac_core_codebuild_projects_flatten               =   flatten([
@@ -33,8 +33,8 @@ locals {
  
 }
 
-include {
-  path = find_in_parent_folders()
+include "root" {
+  path = find_in_parent_folders("root.hcl")
 }
 
 terraform {

@@ -11,18 +11,26 @@ services:
 #docker run -ti --rm -v $HOME/.aws:/root/.aws -v ${HOME}/.ssh:/root/.ssh -v .:/apps alpine/terragrunt:1.7.4 bash
 #terragrunt run-all show -json plan > plan.json
 
-#terragrunt run-all plan --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/main/ -out=tfplan
-#terragrunt run-all apply --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/main/ --parallelism=4  tfplan
+#terragrunt init  -reconfigure  --filter deployment/dev/us-west-2/core/main/
+#terragrunt init  -upgrade  --filter deployment/dev/us-west-2/core/main/
+#cd deployment/dev/us-west-2/core/main/ && terragrunt backend bootstrap --non-interactive && cd ~/terragrunt-infra
+#terragrunt backend delete --all  --non-interactive
 
-#terragrunt run-all plan --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes/ -out=tfplan
-#terragrunt run-all apply --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes/ --parallelism=4  tfplan
+#terragrunt run --all plan --filter deployment/dev/us-west-2/core/aws-resources/ -out-dir=tfplan
+#terragrunt run --all apply --filter deployment/dev/us-west-2/core/aws-resources/ --parallelism=4  -out-dir=tfplan
 
-#terragrunt run-all plan --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/prom-grafana-stack/ -out=tfplan
-#terragrunt run-all apply --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/prom-grafana-stack/ --parallelism=4  tfplan
+#terragrunt run --all plan --filter deployment/dev/us-west-2/core/main/ -out-dir=tfplan
+#terragrunt run --all apply --filter deployment/dev/us-west-2/core/main/ --parallelism=4  -out-dir=tfplan
 
-#terragrunt run-all destroy  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/prom-grafana-stack/
-#terragrunt run-all destroy  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
-#terragrunt run-all destroy  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/main
+#terragrunt run --all plan --filter deployment/dev/us-west-2/core/kubernetes/ -out=tfplan
+#terragrunt run --all apply --filter deployment/dev/us-west-2/core/kubernetes/ --parallelism=4  -out-dir=tfplan
+
+#terragrunt run --all plan --filter deployment/dev/us-west-2/core/prom-grafana-stack/ -out=tfplan
+#terragrunt run --all apply --filter deployment/dev/us-west-2/core/prom-grafana-stack/ --parallelism=4  -out-dir=tfplan
+
+#terragrunt run --all destroy  --filter deployment/dev/us-west-2/core/prom-grafana-stack/
+#terragrunt run --all destroy  --filter deployment/dev/us-west-2/core/kubernetes
+#terragrunt run --all destroy  --filter deployment/dev/us-west-2/core/main
 
 #terragrunt run-all output --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
 #terragrunt run-all init --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/ --terragrunt-log-level debug --terragrunt-debug
@@ -33,7 +41,8 @@ services:
 #terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/projects/raffle
 #To remove a lock go to dynamo table and remove the item with info column
 
-#aws sts assume-role --role-arn "arn:aws:iam::324711057459:role/Developer" --role-session-name AWSCLI-Session 
+#aws sts assume-role --role-arn "arn:aws:iam::324711057459:role/Developer" --role-session-name AWSCLI-Session  --duration-seconds 43200
+#aws sts assume-role --role-arn "arn:aws:iam::324711057459:role/Developer" --role-session-name Developer_Session --profile AdminSSO
 #aws sts get-caller-identity
 
 #aws eks update-kubeconfig --region us-west-2 --name dev_infra_cluster 

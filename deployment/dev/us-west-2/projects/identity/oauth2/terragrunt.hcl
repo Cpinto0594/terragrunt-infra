@@ -8,7 +8,7 @@ locals {
     region_vars      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
     namespace_vars   = read_terragrunt_config(find_in_parent_folders("namespace.hcl"))
 
-    base_source = "${dirname(find_in_parent_folders())}/..//${local.terra_mod_name}"
+    base_source = "${dirname(find_in_parent_folders("root.hcl"))}/..//${local.terra_mod_name}"
 
     project                       =   "api"
     project_name                  =   "${local.namespace_vars.locals.namespace}_${local.project}_${local.namespace_vars.locals.environment}"
@@ -16,7 +16,7 @@ locals {
 
 
 include {
-  path = find_in_parent_folders()
+  path = find_in_parent_folders("root.hcl")
 }
 
 terraform {
