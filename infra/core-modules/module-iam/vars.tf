@@ -58,6 +58,7 @@ variable "managed_infra_roles" {
 variable "managed_infra_users" {
   type = map(object({
     path                 = optional(string)
+    access_key           = optional(bool, false)
     managed_policies_arn = optional(list(string))
     managed_policies     = optional(list(string))
     managed_policies_definitions = map(object({

@@ -90,6 +90,7 @@ infra_managed_policies:
 
 aws_core_users:
   Developer:
+    access_key: true
     managed_policies_arn:
     managed_policies_definitions:
       AssumeRolePolicy:

@@ -115,9 +115,10 @@ resource "aws_iam_user" "managed_users" {
   })
 }
 
-# resource "aws_iam_access_key" "managed_users_access_key" {
-#   user = aws_iam_user.managed_users.name
-# }
+resource "aws_iam_access_key" "managed_users_access_key" {
+  for_each = { for user_key, user_value in local.managed_infra_users : user_key => user_value if user_value.access_key }
+  user = aws_iam_user.managed_users[each.key].name
+}
 
 data "aws_iam_policy_document" "managed_users_policy_document" {
   for_each = { for policy in local.managed_user_policies : policy.key => policy }
