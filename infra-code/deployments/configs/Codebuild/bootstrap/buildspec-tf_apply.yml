@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - ls
+      - chmod +x ./Codebuild/scripts/install_terragrunt.sh
+      - chmod +x ./Codebuild/scripts/bootstrap/terragrunt_apply.sh
+      - ./Codebuild/scripts/install_terragrunt.sh
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Running Terraform apply...
+      - ./Codebuild/scripts/bootstrap/terragrunt_apply.sh
+

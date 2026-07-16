@@ -1,0 +1,223 @@
+##Definition for general roles
+aws_core_roles:
+  Developer:
+    managed_policies_arn:
+      - arn:aws:iam::{{AWS_ACCOUNT}}:policy/DeveloperAccessPolicy
+      - arn:aws:iam::{{AWS_ACCOUNT}}:policy/DeveloperProductivityPolicy
+    assume_role_policy:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            AWS:
+              - arn:aws:iam::{{AWS_ACCOUNT}}:root
+              - arn:aws:iam::{{AWS_ACCOUNT}}:role/Developer
+          Action:
+            - sts:AssumeRole
+            
+aws_core_policies:
+  DeveloperAccessPolicy:
+    policy:
+      Version: "2012-10-17"
+      Statement:
+        - Sid: "DeveloperAccessPolicy"
+          Effect: Allow
+          Action:
+            - iam:AddRoleToInstanceProfile
+            - iam:CreateOpenIDConnectProvider
+            - iam:CreateRole
+            - iam:DeleteRole
+            - iam:DeleteServiceLinkedRole
+            - iam:GenerateCredentialReport
+            - iam:GenerateOrganizationsAccessReport
+            - iam:GenerateServiceLastAccessedDetails
+            - iam:GetAccessKeyLastUsed
+            - iam:GetAccountAuthorizationDetails
+            - iam:GetAccountEmailAddress
+            - iam:GetAccountName
+            - iam:GetAccountPasswordPolicy
+            - iam:GetAccountSummary
+            - iam:GetCloudFrontPublicKey
+            - iam:GetContextKeysForCustomPolicy
+            - iam:GetContextKeysForPrincipalPolicy
+            - iam:GetCredentialReport
+            - iam:GetDelegationRequest
+            - iam:GetGroup
+            - iam:GetGroupPolicy
+            - iam:GetHumanReadableSummary
+            - iam:GetInstanceProfile
+            - iam:GetLoginProfile
+            - iam:GetMFADevice
+            - iam:GetOpenIDConnectProvider
+            - iam:GetOrganizationsAccessReport
+            - iam:GetOutboundWebIdentityFederationInfo
+            - iam:GetPolicy
+            - iam:GetPolicyVersion
+            - iam:GetRole
+            - iam:GetRolePolicy
+            - iam:GetSAMLProvider
+            - iam:GetSSHPublicKey
+            - iam:GetServerCertificate
+            - iam:GetServiceLastAccessedDetails
+            - iam:GetServiceLastAccessedDetailsWithEntities
+            - iam:GetServiceLinkedRoleDeletionStatus
+            - iam:GetUser
+            - iam:GetUserPolicy
+            - iam:ListAccessKeys
+            - iam:ListAccountAliases
+            - iam:ListAttachedGroupPolicies
+            - iam:ListAttachedRolePolicies
+            - iam:ListAttachedUserPolicies
+            - iam:ListCloudFrontPublicKeys
+            - iam:ListDelegationRequests
+            - iam:ListEntitiesForPolicy
+            - iam:ListGroupPolicies
+            - iam:ListGroups
+            - iam:ListGroupsForUser
+            - iam:ListInstanceProfileTags
+            - iam:ListInstanceProfiles
+            - iam:ListInstanceProfilesForRole
+            - iam:ListMFADeviceTags
+            - iam:ListMFADevices
+            - iam:ListOpenIDConnectProviderTags
+            - iam:ListOpenIDConnectProviders
+            - iam:ListOrganizationsFeatures
+            - iam:ListPolicies
+            - iam:ListPoliciesGrantingServiceAccess
+            - iam:ListPolicyTags
+            - iam:ListPolicyVersions
+            - iam:ListRolePolicies
+            - iam:ListRoleTags
+            - iam:ListRoles
+            - iam:ListSAMLProviderTags
+            - iam:ListSAMLProviders
+            - iam:ListSSHPublicKeys
+            - iam:ListSTSRegionalEndpointsStatus
+            - iam:ListServerCertificateTags
+            - iam:ListServerCertificates
+            - iam:ListServiceSpecificCredentials
+            - iam:ListSigningCertificates
+            - iam:ListUserPolicies
+            - iam:ListUserTags
+            - iam:ListUsers
+            - iam:ListVirtualMFADevices
+            - iam:SimulateCustomPolicy
+            - iam:SimulatePrincipalPolicy
+            - iam:CreatePolicy
+            - iam:CreatePolicyVersion
+            - iam:DeletePolicy
+            - iam:DeletePolicyVersion
+            - iam:DeleteRolePolicy
+            - iam:PutRolePolicy
+            - iam:DetachRolePolicy
+            - iam:AttachRolePolicy
+            - iam:TagRole
+            - iam:TagPolicy
+            - iam:UntagRole
+            - iam:UntagPolicy
+            - iam:PassRole
+          Resource:
+            - "*"
+        - Sid: "AccountManagement"
+          Effect: Allow
+          Action:
+            - account:GetRegionOptStatus
+            - account:GetPrimaryEmail
+            - account:GetContactInformation
+            - account:GetAccountInformation
+            - account:GetGovCloudAccountInformation
+            - account:GetAlternateContact
+            - "uxc:ListServices"
+            - "uxc:GetAccountColor"
+            - "uxc:GetAccountCustomizations"
+          Resource:
+            - "*"
+        - Sid: "CostExplorer"
+          Effect: Allow
+          Action:
+            - "ce:GetCostAndUsage"
+            - "ce:GetReservationPurchaseRecommendation"
+            - "ce:GetPreferences"
+            - "ce:ListTagsForResource"
+            - "ce:GetReservationUtilization"
+            - "ce:GetCostAndUsageComparisons"
+            - "ce:GetCostCategories"
+            - "ce:GetSavingsPlansPurchaseRecommendation"
+            - "ce:GetSavingsPlansUtilizationDetails"
+            - "ce:GetDimensionValues"
+            - "ce:GetAnomalySubscriptions"
+            - "ce:DescribeReport"
+            - "ce:GetReservationCoverage"
+            - "ce:GetCommitmentPurchaseAnalysis"
+            - "ce:GetAnomalyMonitors"
+            - "ce:GetUsageForecast"
+            - "ce:DescribeNotificationSubscription"
+            - "ce:DescribeCostCategoryDefinition"
+            - "ce:GetRightsizingRecommendation"
+            - "ce:GetSavingsPlansUtilization"
+            - "ce:GetAnomalies"
+            - "ce:GetCostForecast"
+            - "ce:GetApproximateUsageRecords"
+            - "ce:GetCostAndUsageWithResources"
+            - "ce:GetSavingsPlanPurchaseRecommendationDetails"
+            - "ce:GetCostComparisonDrivers"
+            - "ce:GetSavingsPlansCoverage"
+            - "ce:GetConsoleActionSetEnforced"
+            - "ce:GetTags"
+          Resource:
+            - "*"
+  DeveloperProductivityPolicy:
+    policy:
+      Version: "2012-10-17"
+      Statement:
+        - Sid: "DeveloperComputingPolicy"
+          Effect: Allow
+          Action:
+            - ec2:*
+            - rds:*
+            - s3:*
+            - cloudwatch:*
+            - logs:*
+            - eks:*
+          Resource:
+            - "*"
+        - Sid: "DeveloperProductivityPolicy"
+          Effect: Allow
+          Action:
+            - sns:*
+            - sqs:*
+            - codebuild:*
+            - codecommit:*
+            - codedeploy:*
+            - codepipeline:*
+            - codeartifact:*
+            - codestar:*
+            - codestar-connections:*
+            - codeconnections:*
+          Resource:
+            - "*"
+  
+  
+
+aws_core_users:
+  Developer:
+    path: "/developers/"
+    #If set to true, an access key will be created for the user. If false, no access key will be created.
+    access_key: false
+    #When set to true, the user will be deleted even if they have associated resources (e.g., access keys, MFA devices, etc.). Use with caution.
+    force_destroy: true
+    #When set to true, the user will be required to reset their password upon first login
+    password_reset_required: true
+    #Policy ARN to attach to the user
+    managed_policies_arn:
+    #Custom policies to attach to the user
+    managed_policies_definitions:
+      AssumeRolePolicy:
+        policy:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - sts:AssumeRole
+              Resource:
+                - "*"

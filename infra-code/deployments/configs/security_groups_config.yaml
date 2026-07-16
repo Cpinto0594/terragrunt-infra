@@ -1,0 +1,59 @@
+infra_security_groups:
+- name: eks_cluster_sec_group
+  description: Allow All inbound traffic
+  ingress:
+  - description: Allow HTTPS
+    protocol: tcp
+    from_port: 443
+    to_port: 443
+    cidr_blocks:
+    - 0.0.0.0/0
+  - description: Allow HTTP
+    protocol: tcp
+    from_port: 80
+    to_port: 80
+    cidr_blocks:
+    - 0.0.0.0/0
+  egress:
+  - from_port: 0
+    to_port: 0
+    protocol: "-1"
+    cidr_blocks:
+    - 0.0.0.0/0
+    description: All from VPC
+- name: postgresql_db_security_group
+  description: Allow All inbound traffic
+  ingress:
+  - description: Allow HTTP
+    protocol: tcp
+    from_port: 54321
+    to_port: 54321
+    cidr_blocks:
+    - 0.0.0.0/0
+  egress:
+  - from_port: 0
+    to_port: 0
+    protocol: "-1"
+    cidr_blocks:
+    - 0.0.0.0/0
+    description: All from VPC
+    
+  #raffle_backend_service_sec_grp
+apps_security_groups:
+  nodejs:
+    description: Allow 8080 inbound traffic
+    ingress:
+    - protocol: tcp
+      from_port: 8080
+      to_port: 8080
+      description: 8080 from VPC
+      cidr_blocks:
+      - 0.0.0.0/0
+      ipv6_cidr_blocks:
+      - "::/0"
+    egress:
+    - from_port: 0
+      to_port: 0
+      protocol: "-1"
+      cidr_blocks:
+      - 0.0.0.0/0

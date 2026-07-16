@@ -1,0 +1,17 @@
+app_service_role_definition:
+  assume_role_policy:
+    Version: '2012-10-17'
+    Statement:
+    - Effect: Allow
+      Principal:
+        Service:
+        - ecs-tasks.amazonaws.com
+        - application-autoscaling.amazonaws.com
+        - ec2.amazonaws.com
+        - ecs.amazonaws.com
+        - codebuild.amazonaws.com
+        - codedeploy.amazonaws.com
+        - codepipeline.amazonaws.com
+        - eks.amazonaws.com
+      Action:
+      - sts:AssumeRole
