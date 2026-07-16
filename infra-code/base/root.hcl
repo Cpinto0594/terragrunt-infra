@@ -11,6 +11,7 @@ locals {
     #dynamodb_table          = local.namespace_vars.locals.dynamodb_table
 }
 
+
 # Generate an dynamic AWS provider block
 generate "provider" {
   path      = "provider.tf"
@@ -60,7 +61,6 @@ provider "aws" {
 }
 EOF
 }
-
 
 remote_state {
   backend = "s3"

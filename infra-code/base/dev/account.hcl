@@ -1,6 +1,7 @@
 locals {
     account_id                  =   "324711057459"
     environment                 =   "dev"
+    tg_role_name                =   "Developer"
     providers                   =   {
         aws                     =   {
             version             =   "6.54.0"

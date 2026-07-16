@@ -63,6 +63,7 @@ locals {
     managed_infra_policies                      =  local.managed_policies_computed
     managed_infra_roles                         =  local.roles_computed
     
+    #NEED TO GENERATE THEM AT APP PROJECT LEVEL
     apps_security_groups_computed               =   [ for app, config in local.globals_vars.locals.apps_config : 
                                                           merge(local.security_groups_config.apps_security_groups[config.lang], {name:  "${app}_service_sec_grp" })
                                                           if ( try( local.security_groups_config.apps_security_groups[config.lang], null ) != null )

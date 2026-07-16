@@ -9,6 +9,9 @@ locals {
     environment             = local.namespace_vars.locals.environment
     state_bucket            = local.namespace_vars.locals.state_bucket
     dynamodb_table          = local.namespace_vars.locals.dynamodb_table
+
+    aws_account_id          = local.account_vars.locals.account_id
+    aws_role_name           = local.account_vars.locals.tg_role_name
 }
 
 # Generate an dynamic AWS provider block
@@ -56,7 +59,6 @@ terraform {
 }
 provider "aws" {
   region = "${local.aws_region}"
-  profile = "${local.account_vars.locals.tg_role_name}"
   assume_role {
     role_arn    =  "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
   }
@@ -64,6 +66,7 @@ provider "aws" {
 EOF
 }
 
+#iam_role = "arn:aws:iam::${local.aws_account_id}:role/${local.aws_role_name}"
 
 remote_state {
   backend = "s3"
@@ -73,7 +76,6 @@ remote_state {
   }
 
   config = {
-    profile = "AdminSSO"
     bucket = "${local.account_vars.locals.account_id}-${local.state_bucket}"
     key    = "${path_relative_to_include()}/terraform.tfstate"
     assume_role = {

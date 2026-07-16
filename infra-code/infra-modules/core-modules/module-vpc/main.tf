@@ -74,6 +74,7 @@ resource "aws_subnet" "public_subnets" {
     availability_zone = local.public_subnets_available_zones[tonumber(each.key)-1]
     map_public_ip_on_launch = true
 
+
     tags = merge( local.tags , {
         Name = "public_subnet_${each.key}"
     })
