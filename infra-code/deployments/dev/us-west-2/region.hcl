@@ -31,6 +31,11 @@ locals {
     managed_infra_policies                      =   local.iam_config.infra_managed_policies
     managed_infra_roles                         =   local.iam_config.infra_core_roles
 
+    #Module Route53 - Input Vars
+    route53_config                              =   yamldecode(file("../../configs/route53_configs.yml"))
+    route53_zones                               =   local.route53_config.route_zones
+    route53_zone_records                        =   local.route53_config.route_zone_records
+
 
 
     #app_roles_aws_service_list                  =   local.iam_config.app_roles_aws_service_list

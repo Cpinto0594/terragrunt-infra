@@ -55,6 +55,23 @@ module "module_iam" {
   ]
 }
 
+module "module_route53" {
+  source = "../../core-modules/module-route53"
+
+  environment  = var.environment
+  aws_region   = var.aws_region
+  account_id   = var.account_id
+  default_tags = var.default_tags
+
+  master_domain        = var.master_domain
+  route53_zones        = var.route53_zones
+  route53_zone_records = var.route53_zone_records
+  
+  depends_on = [
+    module.module_vpc
+  ]
+}
+
 # module "module_codebuild" {
 #   source = "../../core-modules/module-codebuild"
 
@@ -99,7 +116,7 @@ resource "aws_codestarconnections_connection" "codepipeline_connections_github" 
 ## WE NEED TO MOVE THIS TO IT'S OWN MODULE, SINCE IT'S NOT RELATED TO THE VPC, IAM OR SECURITY GROUPS.
 resource "aws_route53_zone" "primary" {
   force_destroy = true
-  name = var.master_domain
+  name          = var.master_domain
   tags = merge(var.default_tags, {
     Name = var.master_domain
   })
@@ -107,15 +124,15 @@ resource "aws_route53_zone" "primary" {
 
 
 resource "aws_route53_zone" "env_zone" {
-  name = "${var.environment}.${var.master_domain}"
+  name          = "${var.environment}.${var.master_domain}"
   force_destroy = true
   tags = merge(var.default_tags, {
     Name = "${var.environment}.${var.master_domain}"
   })
 }
 
- #for prod records high ttl is recommended since the NS records are not expected to change frequently ( 86400 - 172800 / 1 - 2 days ).
- #For dev and test environments, a lower TTL can be used to allow for quicker updates if needed.
+#for prod records high ttl is recommended since the NS records are not expected to change frequently ( 86400 - 172800 / 1 - 2 days ).
+#For dev and test environments, a lower TTL can be used to allow for quicker updates if needed.
 resource "aws_route53_record" "env_zone-ns" {
   zone_id = aws_route53_zone.primary.zone_id
   name    = "${var.environment}.${var.master_domain}"

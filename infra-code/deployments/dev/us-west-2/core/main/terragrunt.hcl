@@ -6,6 +6,7 @@ locals {
 
   region_vars      = read_terragrunt_config(find_in_parent_folders("region.hcl"))
   namespace_vars   = read_terragrunt_config(find_in_parent_folders("namespace.hcl"))
+  account_vars     = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
   base_source = "${dirname(find_in_parent_folders("root.hcl"))}/..//${local.terra_mod_name}"
 
@@ -61,6 +62,10 @@ inputs = {
     #Module IAM - Input Vars
     managed_infra_roles                     = local.region_vars.locals.managed_infra_roles
     managed_infra_policies                  = local.region_vars.locals.managed_infra_policies
+
+    #Module Route53 - Input Vars
+    route53_zones                            = local.region_vars.locals.route53_zones
+    master_domain                            = local.account_vars.locals.master_domain
 
     #Module CodeBuild - Check
     #iac_core_codebuild_projects             =   local.iac_core_codebuild_projects_computed

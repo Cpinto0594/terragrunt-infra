@@ -4,13 +4,13 @@ variable "environment" {
 }
 
 variable "aws_region" {
-  type    = string
-  description = "AWS Region" 
+  type        = string
+  description = "AWS Region"
 }
 
 variable "account_id" {
   type        = string
-  description = "AWS Account ID" 
+  description = "AWS Account ID"
 }
 
 variable "default_tags" {
@@ -26,34 +26,34 @@ variable "master_domain" {
 
 ## VPC module
 
-variable "vpc_cidr"{
+variable "vpc_cidr" {
   type = string
 }
 
-variable "private_route_cidrs"{
+variable "private_route_cidrs" {
   type = list(string)
 }
 
-variable "public_route_cidrs"{
+variable "public_route_cidrs" {
   type = list(string)
 }
 
-variable "public_subnets_cidrs"{
+variable "public_subnets_cidrs" {
   type = list(string)
 }
-variable "private_subnets_cidrs"{
+variable "private_subnets_cidrs" {
   type = list(string)
 }
-variable "public_subnets_available_zones"{
+variable "public_subnets_available_zones" {
   type = list(string)
 }
-variable "private_subnets_available_zones"{
+variable "private_subnets_available_zones" {
   type = list(string)
 }
-variable "public_route_tables"{
+variable "public_route_tables" {
   type = list(string)
 }
-variable "private_route_tables"{
+variable "private_route_tables" {
   type = list(string)
 }
 
@@ -66,18 +66,28 @@ variable "security_groups" {
 
 variable "managed_infra_policies" {
   nullable = true
-  default = {}
-  type =  any
+  default  = {}
+  type     = any
 }
 
 variable "managed_infra_roles" {
   nullable = true
-  default = {}
-  type =  any
+  default  = {}
+  type     = any
 }
 
 variable "managed_infra_users" {
   nullable = true
-  default = {}
-  type =  any
+  default  = {}
+  type     = any
+}
+
+variable "route53_zones" {
+  description = "Route53 Zones"
+  type = any
+}
+
+variable "route53_zone_records" {
+  description = "Route53 Zone Records"
+  type = any
 }

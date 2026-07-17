@@ -1,0 +1,26 @@
+# Created as: aws_route53_zone "primary"
+# vpc - (Optional) VPC Name tag to associate with a private hosted zone.
+#       Looked up via data "aws_vpc" filtered by Name tag. Set to null for public zones.
+route_zones:
+  example.com:
+    comment: Primary master domain zone
+    force_destroy: true
+    vpc: null
+
+  internal.example.com:
+    comment: Private internal zone (associated to VPC by name tag)
+    force_destroy: true
+    vpc: app-vpc
+
+# Records for zones
+route_zone_records:
+  dev.example.com:
+    zone_name: example.com
+    type: NS
+    ttl: 300
+    records:
+      - ns-123.awsdns-45.com
+      - ns-678.awsdns-90.com
+      - ns-234.awsdns-56.co.uk
+      - ns-901.awsdns-78.org
+    description: NS records delegating dev subdomain to environment zone
