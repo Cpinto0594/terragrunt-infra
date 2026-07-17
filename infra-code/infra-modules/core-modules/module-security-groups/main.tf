@@ -15,55 +15,67 @@ resource "aws_security_group" "app_security_groups" {
   description = each.value.description
   vpc_id      = var.app_vpc_id
 
-
-  dynamic "ingress" {
-    for_each = [for ingress_data in try(local.trafic_rules[each.key].ingress, []) : ingress_data]
-    content {
-      from_port        = ingress.value.from_port
-      to_port          = ingress.value.to_port
-      protocol         = ingress.value.protocol
-      cidr_blocks      = ingress.value.cidr_blocks
-      ipv6_cidr_blocks = ingress.value.ipv6_cidr_blocks
-      description      = ingress.value.description
-    }
-  }
-
-  dynamic "egress" {
-    for_each = [for egress_data in try(local.trafic_rules[each.key].egress, []) : egress_data]
-    content {
-      from_port        = egress.value.from_port
-      to_port          = egress.value.to_port
-      protocol         = egress.value.protocol
-      cidr_blocks      = egress.value.cidr_blocks
-      ipv6_cidr_blocks = egress.value.ipv6_cidr_blocks
-      description      = egress.value.description
-    }
-  }
-
   tags = merge(local.tags, {
     Name = each.key
   })
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
+resource "aws_vpc_security_group_ingress_rule" "allow_ingress" {
   for_each = { for key, value in flatten([
     for key, value in local.trafic_rules :
     [for idx, rule in value.ingress : {
       key          = key
       idx          = idx
       ingress_rule = rule
-    }]
-  ]) : "${value.key}_${value.idx}" => value }
+    }]]) :
+    join("_", [
+      value.key,
+      value.idx,
+      value.ingress_rule.protocol == "-1" ? "ALL" : value.ingress_rule.protocol,
+      coalesce(value.ingress_rule.from_port, "ALL")
+  ]) => value }
 
   security_group_id = aws_security_group.app_security_groups[each.value.key].id
-  cidr_ipv4         = each.value.ingress_rule.cidr_blocks[0]
-  from_port         = each.value.ingress_rule.from_port
-  ip_protocol       = each.value.ingress_rule.protocol
-  to_port           = each.value.ingress_rule.to_port
+  cidr_ipv4         = try(each.value.ingress_rule.cidr_blocks[0], null)
+  cidr_ipv6         = try(each.value.ingress_rule.ipv6_cidr_blocks[0], null)
+  from_port         = coalesce(each.value.ingress_rule.from_port, 0) > 0 ? each.value.ingress_rule.from_port : null
+  to_port           = coalesce(each.value.ingress_rule.to_port, 0) > 0 ? each.value.ingress_rule.to_port : null
+  ip_protocol       = coalesce(each.value.ingress_rule.protocol, "-1")
+  description       = each.value.ingress_rule.description
 
   depends_on = [aws_security_group.app_security_groups]
 
   tags = merge(local.tags, {
-    Name = "allow_tls_ipv4_${each.value.key}"
+    Name = "ingress_${each.key}"
+  })
+}
+
+resource "aws_vpc_security_group_egress_rule" "allow_egress" {
+  for_each = { for key, value in flatten([
+    for key, value in local.trafic_rules :
+    [for idx, rule in value.egress : {
+      key         = key
+      idx         = idx
+      egress_rule = rule
+    }]]) :
+    join("_", [
+      value.key,
+      value.idx,
+      value.egress_rule.protocol == "-1" ? "ALL" : value.egress_rule.protocol,
+      coalesce(value.egress_rule.from_port, "ALL")
+  ]) => value }
+
+  security_group_id = aws_security_group.app_security_groups[each.value.key].id
+  cidr_ipv4         = try(each.value.egress_rule.cidr_blocks[0], null)
+  cidr_ipv6         = try(each.value.egress_rule.ipv6_cidr_blocks[0], null)
+  from_port         = coalesce(each.value.egress_rule.from_port, 0) > 0 ? each.value.egress_rule.from_port : null
+  to_port           = coalesce(each.value.egress_rule.to_port, 0) > 0 ? each.value.egress_rule.to_port : null
+  ip_protocol       = coalesce(each.value.egress_rule.protocol, "-1")
+  description       = each.value.egress_rule.description
+
+  depends_on = [aws_security_group.app_security_groups]
+
+  tags = merge(local.tags, {
+    Name = "egress_${each.key}"
   })
 }

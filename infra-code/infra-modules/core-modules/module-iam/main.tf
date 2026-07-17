@@ -72,7 +72,8 @@ data "aws_iam_policy_document" "infra_services_roles_data" {
   }
 }
 
-################ IAM ROLES #####################################
+
+################ IAM POLICIES #####################################
 
 resource "aws_iam_policy" "infra_policies" {
   for_each = local.managed_infra_policies
@@ -80,6 +81,8 @@ resource "aws_iam_policy" "infra_policies" {
   policy   = data.aws_iam_policy_document.infra_policies_data[each.key].json
 }
 
+
+################ IAM ROLES #####################################
 
 resource "aws_iam_role" "infra_services_roles" {
   for_each = local.managed_infra_roles

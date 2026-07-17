@@ -97,3 +97,11 @@ variable "oidc_enabled" {
   type =  bool
   default = false
 }
+
+variable "authentication_mode" {
+  type =  string
+  default = "API"
+}
+variable "authentication_admin_role_arn" {
+  type =  string
+}

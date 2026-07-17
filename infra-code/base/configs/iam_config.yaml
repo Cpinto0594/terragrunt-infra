@@ -116,6 +116,10 @@ aws_core_policies:
             - iam:UntagRole
             - iam:UntagPolicy
             - iam:PassRole
+            - iam:CreateServiceLinkedRole
+            - iam:TagOpenIDConnectProvider
+            - iam:UntagOpenIDConnectProvider
+            - iam:DeleteOpenIDConnectProvider
           Resource:
             - "*"
         - Sid: "AccountManagement"
@@ -194,6 +198,7 @@ aws_core_policies:
             - codestar:*
             - codestar-connections:*
             - codeconnections:*
+            - route53:*
           Resource:
             - "*"
   

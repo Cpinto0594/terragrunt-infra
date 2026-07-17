@@ -1,6 +1,23 @@
 
+output "output_iam_mod_infra_policies" {
+  value = {for key, value in aws_iam_policy.infra_policies: key => {id = value.id, arn = value.arn}}
+}
+
+
 output "output_iam_mod_service_roles" {
   value = {for key, value in aws_iam_role.infra_services_roles: key => {id = value.id, arn = value.arn}}
+}
+
+output "output_iam_mod_service_roles_policies" {
+  value = {for key, value in aws_iam_role_policy_attachment.managed_policies_attachment: key => {id = value.id, role = value.role, policy_arn = value.policy_arn}}
+}
+
+output "output_iam_mod_users" {
+  value = {for key, value in aws_iam_user.managed_users: key => {id = value.id, arn = value.arn}}
+}
+
+output "output_iam_mod_user_policies" {
+  value = {for key, value in aws_iam_user_policy.managed_users_policy: key => {id = value.id, arn = value.arn}}
 }
 
 output "output_iam_users_secret_access_key" {

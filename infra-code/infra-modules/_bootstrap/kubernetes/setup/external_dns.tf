@@ -28,7 +28,7 @@ spec:
       serviceAccountName: ${local.externaldns_name}
       containers:
         - name: ${local.externaldns_name}
-          image: registry.k8s.io/external-dns/external-dns:v0.14.2
+          image: registry.k8s.io/external-dns/external-dns:v0.21.0
           args:
             - --source=service
             - --source=ingress
@@ -78,6 +78,7 @@ data "aws_iam_policy_document" "external_dns_role_policy" {
       identifiers = [data.aws_iam_openid_connect_provider.cluster_oidc_provider.arn]
     }
   }
+  depends_on = [data.aws_iam_openid_connect_provider.cluster_oidc_provider]
 }
 
 resource "aws_iam_role" "external_dns_saccount_role" {

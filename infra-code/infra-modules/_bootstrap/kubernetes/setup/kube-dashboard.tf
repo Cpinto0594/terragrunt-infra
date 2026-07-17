@@ -1,56 +1,58 @@
 
 locals {
-  dashboard_namespace           =   "${var.environment}-kubernetes-dashboard"
-  dashboard_name                =   "${var.environment}-kubernetes-dashboard"
-  dashboard_ingress             =   "${local.dashboard_name}"
-  dashboard_ingress_tls_secret  =   "${local.dashboard_name}-tls"
-  domain                        =   "dashboard.${var.environment}.renderapps.net"
+  dashboard_namespace          = "${var.environment}-kubernetes-dashboard"
+  dashboard_name               = "${var.environment}-kubernetes-dashboard"
+  dashboard_ingress            = local.dashboard_name
+  dashboard_ingress_tls_secret = "${local.dashboard_name}-tls"
+  domain                       = "dashboard.${var.environment}.renderapps.net"
 }
 
-
+#https://github.com/kubernetes-retired/dashboard
 resource "helm_release" "kubernetes-dashboard" {
 
-  name =  local.dashboard_name
+  name = local.dashboard_name
 
-  repository = "https://kubernetes.github.io/dashboard/"
+  repository = "https://kubernetes-retired.github.io/dashboard/"
   chart      = "kubernetes-dashboard"
   namespace  = local.dashboard_namespace
 
-  set {
-    name  = "service.type"
-    value = "LoadBalancer"
-  }
+  set = [
+    {
+      name  = "service.type"
+      value = "LoadBalancer"
+    },
 
-  set {
-    name  = "protocolHttp"
-    value = "true"
-  }
+    {
+      name  = "protocolHttp"
+      value = "true"
+    },
 
-  set {
-    name  = "service.externalPort"
-    value = 80
-  }
+    {
+      name  = "service.externalPort"
+      value = 80
+    },
 
-  set {
-    name  = "replicaCount"
-    value = 1
-  }
+    {
+      name  = "replicaCount"
+      value = 1
+    },
 
-  set {
-    name  = "rbac.clusterReadOnlyRole"
-    value = "true"
-  }
+    {
+      name  = "rbac.clusterReadOnlyRole"
+      value = "true"
+    }
+  ]
 
   depends_on = [
-        data.aws_eks_node_groups.eks_cluster_node_groups,
-        kubernetes_namespace.namespaces
+    data.aws_eks_node_groups.eks_cluster_node_groups,
+    kubernetes_namespace_v1.namespaces
   ]
 
 }
 
 
 resource "kubectl_manifest" "ingress_for_kube_dashboard" {
-    yaml_body = <<EOF
+  yaml_body = <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -83,7 +85,7 @@ spec:
 EOF
 
   depends_on = [
-        helm_release.kubernetes-dashboard
+    helm_release.kubernetes-dashboard
   ]
 }
 
@@ -103,7 +105,7 @@ data:
 YAML
 
   depends_on = [
-        helm_release.kubernetes-dashboard ,
-        data.aws_eks_node_groups.eks_cluster_node_groups 
+    helm_release.kubernetes-dashboard,
+    data.aws_eks_node_groups.eks_cluster_node_groups
   ]
-} 
+}

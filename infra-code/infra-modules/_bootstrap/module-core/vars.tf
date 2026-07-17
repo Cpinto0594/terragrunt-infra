@@ -81,13 +81,3 @@ variable "managed_infra_users" {
   default = {}
   type =  any
 }
-
-
-#Module Code Build
-variable "iac_core_codebuild_projects" {
-  type = any
-}
-
-variable "iac_core_codepipeline_projects" {
-  type    = any
-}

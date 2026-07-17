@@ -1,31 +1,31 @@
-locals{
-  ingress_nginx_namespace              = "${var.environment}-ingress"
-  helm_release                              = "${var.environment}-ingress-nginx"
-  nginx_helm_version                        = "4.10.0"
+locals {
+  #ingress_nginx_namespace = "${var.environment}-ingress"
+  helm_release            = "${var.environment}-ingress-nginx"
+  nginx_helm_version      = "4.10.0"
 }
 
 resource "helm_release" "ingress-nginx" {
-  name = local.helm_release
-  repository = "https://kubernetes.github.io/ingress-nginx"
-  chart = "ingress-nginx"
-  namespace = local.networking_namespace
-  version   = local.nginx_helm_version
+  name             = local.helm_release
+  repository       = "https://kubernetes.github.io/ingress-nginx"
+  chart            = "ingress-nginx"
+  namespace        = local.networking_namespace
+  version          = local.nginx_helm_version
   create_namespace = false
 
-  set {
+  set = [{
     name  = "rbac.create"
     value = "true"
-  }
+  }]
 
   depends_on = [
     data.aws_eks_node_groups.eks_cluster_node_groups,
-    kubernetes_namespace.namespaces
+    kubernetes_namespace_v1.namespaces
   ]
-  
+
 }
 
 
-resource "kubernetes_config_map" "ingress-nginx-controller" {
+resource "kubernetes_config_map_v1" "ingress-nginx-controller" {
   metadata {
     name = local.helm_release
     annotations = {

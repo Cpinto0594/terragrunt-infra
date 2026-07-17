@@ -29,16 +29,16 @@ variable "security_groups" {
     description     =  optional(string)
     ingress         = optional(list(object({
         protocol         = string
-        from_port        = number
-        to_port          = number
+        from_port        = optional(number)
+        to_port          = optional(number)
         description      = optional(string)
         cidr_blocks      = list(string)
         ipv6_cidr_blocks = optional(list(string))
     })))
     egress         = optional(list(object({
         protocol         = string
-        from_port        = number
-        to_port          = number
+        from_port        = optional(number)
+        to_port          = optional(number)
         description      = optional(string)
         cidr_blocks      = list(string)
         ipv6_cidr_blocks = optional(list(string))

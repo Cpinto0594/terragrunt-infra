@@ -1,9 +1,10 @@
 cluster_defaults:
   role_arn: EksClustersServiceRole
+  authentication_mode: API
   cluster_security_groups:
     - eks_cluster_sec_group
   logs_retention_days: 30
-  cluster_version: '1.31'
+  cluster_version: '1.36'
   enabled_cluster_log_types:
     - api
     - controllerManager
@@ -22,3 +23,17 @@ cluster_node_defaults:
   update_config:
     max_unavailable: 1
 
+
+
+
+# Common Kubernetes RBAC roles:
+# - cluster-admin : Full cluster administrator
+# - admin         : Namespace administrator
+# - edit          : Developer (read/write)
+# - view          : Read-only
+#
+# Rough EKS policy equivalents:
+# - AmazonEKSClusterAdminPolicy -> cluster-admin
+# - AmazonEKSAdminPolicy        -> admin
+# - AmazonEKSEditPolicy         -> edit
+# - AmazonEKSViewPolicy         -> view

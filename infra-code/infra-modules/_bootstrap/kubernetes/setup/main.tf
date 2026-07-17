@@ -19,7 +19,7 @@ locals {
 
 }
 
-resource "kubernetes_namespace" "namespaces" {
+resource "kubernetes_namespace_v1" "namespaces" {
   for_each = toset(local.kube_namespaces)
   metadata {
     name = "${var.environment}-${each.value}"
@@ -36,7 +36,7 @@ resource "kubernetes_namespace" "namespaces" {
   depends_on = [data.aws_eks_cluster.eks_cluster]
 }
 
-resource "kubernetes_service_account" "kubernetes_service_account" {
+resource "kubernetes_service_account_v1" "kubernetes_service_account" {
   for_each = { for value in local.service_accounts_computed : value.sac => value }
   metadata {
     name      = "${var.environment}-${each.key}"
@@ -48,15 +48,16 @@ resource "kubernetes_service_account" "kubernetes_service_account" {
     annotations = { for key, value in coalesce(each.value.annotations, {}) : key => replace( value, "{ACCOUNT_ID}", var.account_id ) }
   }
   secret {
-    name = kubernetes_secret.kubernetes_account_secret[each.key].metadata[0].name
+    name = kubernetes_secret_v1.kubernetes_account_secret[each.key].metadata[0].name
   }
 
   depends_on = [
-    kubernetes_namespace.namespaces
+    kubernetes_namespace_v1.namespaces,
+    kubernetes_secret_v1.kubernetes_account_secret
   ]
 }
 
-resource "kubernetes_secret" "kubernetes_account_secret" {
+resource "kubernetes_secret_v1" "kubernetes_account_secret" {
   for_each = { for value in local.service_accounts_computed : value.sac => value }
   metadata {
     name      = "${var.environment}-${each.key}-secret"
@@ -66,11 +67,11 @@ resource "kubernetes_secret" "kubernetes_account_secret" {
     }
   }
   depends_on = [
-    kubernetes_namespace.namespaces
+    kubernetes_namespace_v1.namespaces
   ]
 }
 
-resource "kubernetes_cluster_role" "kubernetes_cluster_role" {
+resource "kubernetes_cluster_role_v1" "kubernetes_cluster_role" {
   for_each = local.kube_cluster_roles
   metadata {
     name = "${var.environment}-${each.key}"
@@ -88,11 +89,11 @@ resource "kubernetes_cluster_role" "kubernetes_cluster_role" {
     }
   }
   depends_on = [
-    kubernetes_namespace.namespaces
+    kubernetes_namespace_v1.namespaces
   ]
 }
 
-resource "kubernetes_cluster_role_binding" "kubernetes_cluster_role_binding" {
+resource "kubernetes_cluster_role_binding_v1" "kubernetes_cluster_role_binding" {
   for_each = { for value in local.role_bindings_computed : value.subject.name => value }
 
   metadata {
@@ -129,6 +130,6 @@ resource "kubernetes_cluster_role_binding" "kubernetes_cluster_role_binding" {
   }
 
   depends_on = [
-    kubernetes_namespace.namespaces
+    kubernetes_namespace_v1.namespaces
   ]
 }

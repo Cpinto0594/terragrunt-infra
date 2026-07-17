@@ -12,3 +12,7 @@ output "output_terraform_md_eks_cluster" {
 output "output_terraform_md_eks_clusters" {
     value   =  { for name in toset(data.aws_eks_clusters.clusters.names) : name => data.aws_eks_cluster.cluster[name]  }
 }
+
+output "output_terraform_md_eks_cluster_oidc_providers" {
+    value   =  { for name in toset(data.aws_eks_clusters.clusters.names) : name => data.aws_eks_cluster.cluster[name].identity[0].oidc[0].issuer  }
+}

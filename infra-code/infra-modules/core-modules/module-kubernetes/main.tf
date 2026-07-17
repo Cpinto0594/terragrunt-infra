@@ -3,13 +3,15 @@ locals {
 
   defaults = yamldecode(file("${path.module}/defaults.yaml"))
 
-  cluster_name              = var.cluster_name
-  role_arn                  = var.role_arn
-  cluster_security_groups   = var.cluster_security_groups
-  logs_retention_days       = var.logs_retention_days
-  cluster_version           = var.cluster_version
-  enabled_cluster_log_types = var.enabled_cluster_log_types
-  oidc_enabled              = var.oidc_enabled
+  cluster_name                        = var.cluster_name
+  role_arn                            = var.role_arn
+  cluster_security_groups             = var.cluster_security_groups
+  logs_retention_days                 = var.logs_retention_days
+  cluster_version                     = var.cluster_version
+  enabled_cluster_log_types           = var.enabled_cluster_log_types
+  oidc_enabled                        = var.oidc_enabled
+  authentication_mode                 = var.authentication_mode
+  authentication_admin_role_arn       = var.authentication_admin_role_arn
 
   subnet_ids                = var.subnet_ids
   vpc_id                    = var.vpc_id
@@ -45,6 +47,10 @@ resource "aws_eks_cluster" "eks_cluster" {
   name     = local.cluster_name
   role_arn = data.aws_iam_role.kube_iam_sec_role.arn
   version  = coalesce(local.cluster_version, local.defaults["cluster_defaults"]["cluster_version"])
+  # access_config {
+  #   authentication_mode = coalesce(local.authentication_mode, local.defaults["cluster_defaults"]["authentication_mode"])
+  #   bootstrap_cluster_creator_admin_permissions = true
+  # }
 
   vpc_config {
     subnet_ids         = local.subnet_ids
@@ -59,6 +65,52 @@ resource "aws_eks_cluster" "eks_cluster" {
   depends_on = [aws_cloudwatch_log_group.kube_cluster_cloudwatch_logs]
 
 }
+
+#Access entry for the EKS cluster to allow a specific IAM role to access the cluster
+
+# Common Kubernetes RBAC roles:
+# - cluster-admin : Full cluster administrator
+# - admin         : Namespace administrator
+# - edit          : Developer (read/write)
+# - view          : Read-only
+#
+# Rough EKS policy equivalents:
+# - AmazonEKSClusterAdminPolicy -> cluster-admin
+# - AmazonEKSAdminPolicy        -> admin
+# - AmazonEKSEditPolicy         -> edit
+# - AmazonEKSViewPolicy         -> view
+
+# resource "aws_eks_access_entry" "aws_eks_access_entry_admin" {
+#   cluster_name      = aws_eks_cluster.eks_cluster.name
+#   principal_arn     = local.authentication_admin_role_arn
+#   #kubernetes_groups = ["group-1", "group-2"] #["cluster-admin"]
+#   type              = "STANDARD"
+# }
+
+
+## FOR ADMIN
+# resource "aws_eks_access_policy_association" "aws_eks_access_policy_association_admin" {
+#   cluster_name  = aws_eks_cluster.eks_cluster.name
+#   principal_arn = local.authentication_admin_role_arn
+
+#   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+#   access_scope {
+#     type = "cluster"
+#   }
+# }
+
+## FOR READONLY
+# resource "aws_eks_access_policy_association" "aws_eks_access_policy_association_developer_view" {
+#   cluster_name  = aws_eks_cluster.eks_cluster.name
+#   principal_arn = local.authentication_admin_role_arn
+#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+
+#   access_scope {
+#     type = "cluster"
+#   }
+# }
+
 
 #Node_groups roles must not contain path
 resource "aws_eks_node_group" "eks_clusters_node_group" {
@@ -130,6 +182,15 @@ resource "aws_eks_addon" "addons" {
 }
 
 #CLUSTER OIDC PROVIDER
+
+### IF │ Error: reading IAM OIDC Provider (https://oidc.eks.us-west-2.amazonaws.com/id/XXXXXXXXXXXXXXXXXXXX): couldn't find resource
+### This error occurs because Terraform's state file contains an IAM OIDC Provider resource that does not exist in your AWS account.
+### CREATE THE PROVIDER MANUALLY USING THE AWS CLI: USUALLY IF THERE'S NO ERROR WHILE CREATING THE EKS CLUSTER, THIS IS NOT NEEDED.
+###  aws iam create-open-id-connect-provider \
+###  --url https://oidc.eks.us-west-2.amazonaws.com/id/XXXXXXXXXXXXXXXXXXXX \
+###  --client-id-list sts.amazonaws.com
+
+
 resource "aws_iam_openid_connect_provider" "default_openid_provider" {
   count           = local.oidc_enabled ? 1 : 0
   url             = data.aws_eks_cluster.cluster_datasource.identity[0].oidc[0].issuer

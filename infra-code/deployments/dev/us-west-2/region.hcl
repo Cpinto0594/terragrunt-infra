@@ -9,7 +9,7 @@ locals {
         region = local.aws_region
     }
 
-    #Module VPC
+    #Module VPC - Input Vars
     #https://www.davidc.net/sites/default/subnets/subnets.html
     vpc_cidr                                    =   "10.192.0.0/20"
     private_route_cidrs                         =   ["0.0.0.0/0", "0.0.0.0/0", "0.0.0.0/0"]
@@ -21,53 +21,56 @@ locals {
     public_route_tables                         =   ["1"]
     private_route_tables                        =   ["1","2", "3"]
 
-    #Module Security Groups
+    #Module Security Groups - Input Vars
     security_groups_config                      =   yamldecode(file("../../configs/security_groups_config.yaml"))
     infra_security_groups                       =   local.security_groups_config.infra_security_groups
     #apps_security_groups                        =   local.security_groups_config.apps_security_groups
 
-    #Module IAM
+    #Module IAM - Input Vars
     iam_config                                  =   yamldecode(file("../../configs/iam_config.yaml"))
-    app_roles_aws_service_list                  =   local.iam_config.app_roles_aws_service_list
-    app_service_roles_managed_policies          =   local.iam_config.app_service_roles_managed_policies
+    managed_infra_policies                      =   local.iam_config.infra_managed_policies
+    managed_infra_roles                         =   local.iam_config.infra_core_roles
 
-   
-    infra_core_roles                            =   local.iam_config.infra_core_roles
-    infra_managed_policies                      =   local.iam_config.infra_managed_policies
 
-    #Policies attached to app roles
-    _app_services_roles_definition              =   {
-                                                        path = "/service-role/",
-                                                        managed_policies = [ for key, value in local.app_service_roles_managed_policies: key  ]
-                                                        assume_role_policy = {
-                                                            Version =  "2012-10-17",
-                                                            Statement = [
-                                                                {
-                                                                    Effect = "Allow",
-                                                                    Principal = {
-                                                                        Service = local.app_roles_aws_service_list
-                                                                    },
-                                                                    Action = ["sts:AssumeRole"]
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
+
+    #app_roles_aws_service_list                  =   local.iam_config.app_roles_aws_service_list
+    #app_service_roles_managed_policies          =   local.iam_config.app_service_roles_managed_policies
+
+    
+    
+
+    # #Policies attached to app roles
+    # _app_services_roles_definition              =   {
+    #                                                     path = "/service-role/",
+    #                                                     managed_policies = [ for key, value in local.app_service_roles_managed_policies: key  ]
+    #                                                     assume_role_policy = {
+    #                                                         Version =  "2012-10-17",
+    #                                                         Statement = [
+    #                                                             {
+    #                                                                 Effect = "Allow",
+    #                                                                 Principal = {
+    #                                                                     Service = local.app_roles_aws_service_list
+    #                                                                 },
+    #                                                                 Action = ["sts:AssumeRole"]
+    #                                                             }
+    #                                                         ]
+    #                                                     }
+    #                                                 }
 
 
     #App specific roles
-    app_services_roles                          =   { for service, config in local.globals_vars.locals.apps_config : "${service}_service_role" => local._app_services_roles_definition }
+    #app_services_roles                          =   { for service, config in local.globals_vars.locals.apps_config : "${service}_service_role" => local._app_services_roles_definition }
 
-    roles_computed                              =   merge(local.infra_core_roles, local.app_services_roles)
-    managed_policies_computed                   =   merge( local.infra_managed_policies , local.app_service_roles_managed_policies)
+    #roles_computed                              =   local.infra_core_roles#merge(local.infra_core_roles, local.app_services_roles)
+    #managed_policies_computed                   =   local.infra_managed_policies#merge( local.infra_managed_policies , local.app_service_roles_managed_policies)
    
-    managed_infra_policies                      =  local.managed_policies_computed
-    managed_infra_roles                         =  local.roles_computed
+
     
     #NEED TO GENERATE THEM AT APP PROJECT LEVEL
-    apps_security_groups_computed               =   [ for app, config in local.globals_vars.locals.apps_config : 
-                                                          merge(local.security_groups_config.apps_security_groups[config.lang], {name:  "${app}_service_sec_grp" })
-                                                          if ( try( local.security_groups_config.apps_security_groups[config.lang], null ) != null )
-                                                    ]
-    apps_security_groups                        =   local.apps_security_groups_computed
+    # apps_security_groups_computed               =   [ for app, config in local.globals_vars.locals.apps_config : 
+    #                                                       merge(local.security_groups_config.apps_security_groups[config.lang], {name:  "${app}_service_sec_grp" })
+    #                                                       if ( try( local.security_groups_config.apps_security_groups[config.lang], null ) != null )
+    #                                                 ]
+    # apps_security_groups                        =   local.apps_security_groups_computed
 
 }

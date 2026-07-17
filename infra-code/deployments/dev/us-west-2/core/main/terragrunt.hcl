@@ -43,15 +43,8 @@ terraform {
 }
 
 inputs = {
-    service_buckets = {
-      "bucket-private-a" = {
-        acl = "private"
-      },
-      "bucket-public-b" = {
-        acl = "public-read-write"
-      }
-    }
-    #Module VPC
+    
+    #Module VPC - Input Vars
     vpc_cidr                                =  local.region_vars.locals.vpc_cidr
     private_route_cidrs                     =  local.region_vars.locals.private_route_cidrs
     public_route_cidrs                      =  local.region_vars.locals.public_route_cidrs
@@ -62,16 +55,16 @@ inputs = {
     public_route_tables                     =  local.region_vars.locals.public_route_tables
     private_route_tables                    =  local.region_vars.locals.private_route_tables
 
-    #Module Security Groups
-    security_groups                         = concat( local.region_vars.locals.infra_security_groups , local.region_vars.locals.apps_security_groups )
+    #Module Security Groups - Input Vars
+    security_groups                         = local.region_vars.locals.infra_security_groups #concat( local.region_vars.locals.infra_security_groups , local.region_vars.locals.apps_security_groups )
 
-    #Module IAM
+    #Module IAM - Input Vars
     managed_infra_roles                     = local.region_vars.locals.managed_infra_roles
     managed_infra_policies                  = local.region_vars.locals.managed_infra_policies
 
-    #Module CodeBuild
-    iac_core_codebuild_projects             =   local.iac_core_codebuild_projects_computed
-    iac_core_codepipeline_projects          =   local.iac_core_codepipeline_projects
+    #Module CodeBuild - Check
+    #iac_core_codebuild_projects             =   local.iac_core_codebuild_projects_computed
+    #iac_core_codepipeline_projects          =   local.iac_core_codepipeline_projects
 
     #default_tags = merge( local.namespace_vars.locals.namespace_tags, local.region_vars.locals.region_tags, {terraform: true} )
 }

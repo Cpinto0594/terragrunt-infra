@@ -15,9 +15,7 @@ infra_security_groups:
     cidr_blocks:
     - 0.0.0.0/0
   egress:
-  - from_port: 0
-    to_port: 0
-    protocol: "-1"
+  - protocol: "-1"
     cidr_blocks:
     - 0.0.0.0/0
     description: All from VPC
@@ -31,9 +29,7 @@ infra_security_groups:
     cidr_blocks:
     - 0.0.0.0/0
   egress:
-  - from_port: 0
-    to_port: 0
-    protocol: "-1"
+  - protocol: "-1"
     cidr_blocks:
     - 0.0.0.0/0
     description: All from VPC
@@ -52,8 +48,6 @@ apps_security_groups:
       ipv6_cidr_blocks:
       - "::/0"
     egress:
-    - from_port: 0
-      to_port: 0
-      protocol: "-1"
+    - protocol: "-1"
       cidr_blocks:
       - 0.0.0.0/0
