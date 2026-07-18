@@ -4,7 +4,7 @@ locals {
   dashboard_name               = "${var.environment}-kubernetes-dashboard"
   dashboard_ingress            = local.dashboard_name
   dashboard_ingress_tls_secret = "${local.dashboard_name}-tls"
-  domain                       = "dashboard.${var.environment}.renderapps.net"
+  domain                       = "dashboard.${var.r53_domain_name}"
 }
 
 #https://github.com/kubernetes-retired/dashboard

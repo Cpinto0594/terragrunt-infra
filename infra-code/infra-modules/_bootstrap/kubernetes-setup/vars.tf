@@ -19,51 +19,6 @@ variable "default_tags" {
   type        = map(string)
 }
 
-#Module Kubernetes
-variable  "aws_vpc" {
-  type = string
-}
-
-variable  "cluster_name" {
-  type = string
-}
-
-variable  "role_arn" {
-  nullable = true
-  default = null
-  type =  string
-}
-
-variable  "cluster_security_groups" {
-  nullable = true
-  default = null
-  type = list(string)
-}
-
-variable  "logs_retention_days" {
-  nullable = true
-  default = 30
-  type = number
-}
-
-variable  "cluster_version" {
-  nullable = true
-  default = null
-  type = string
-}
-
-variable  "enabled_cluster_log_types" {
-  nullable = true
-  default = null
-  type = list(string)
-}
-
-variable "kube_node_groups" {
-  type  = list(any)
-}
-
-
-#Module Kubernates preparation
 variable "kube_namespaces" {
     type  = list(string)
 }
@@ -90,6 +45,11 @@ variable "kube_cluster_roles" {
   }))
 }
 
+variable "kube_cluster_name" {
+  type  = string
+}
+
+
 variable "cert_manager_email" {
   type  =  string
 }
@@ -99,28 +59,7 @@ variable "r53_domain_name" {
   type        =  string
 }
 
-variable "master_domain" {
-  description = "master_domain"
-  type        =  string
-}
-
-
 variable "oidc_enabled" {
   type =  bool
   default = false
-}
-
-variable "cluster_addons" {
-  type =  list(object({
-    name  =  string
-    version = optional(string)
-    service_account_arn = optional(string)
-    service_account_name = optional(string)
-  }))
-  default = [  ]
-}
-
-variable  "external_dns_role_arn" {
-  default = null
-  type =  string
 }

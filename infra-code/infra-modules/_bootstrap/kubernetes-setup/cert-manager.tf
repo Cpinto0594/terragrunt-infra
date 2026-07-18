@@ -1,6 +1,6 @@
 locals {
-  cert_manager_version        = "v1.14.4"
-  cluster_issuer_name         = "${var.environment}-letsencrypt"
+  cert_manager_version = "v1.21.0"
+  cluster_issuer_name  = "${var.environment}-letsencrypt"
 }
 
 
@@ -11,7 +11,7 @@ resource "helm_release" "cert-manager" {
   chart            = "cert-manager"
   repository       = "https://charts.jetstack.io"
   version          = local.cert_manager_version
-  
+
   values = [
     file("${path.module}/resources/manifests/cert-manager.yaml")
   ]
@@ -28,7 +28,7 @@ resource "helm_release" "cert-manager" {
 # #https://acme-v02.api.letsencrypt.org/directory
 
 resource "kubectl_manifest" "cluster_issuer" {
-    yaml_body = <<EOF
+  yaml_body = <<EOF
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -42,10 +42,10 @@ spec:
     solvers:
       - http01:
           ingress:
-            class: nginx
+            ingressClassName: nginx
 EOF
 
-depends_on = [
+  depends_on = [
     helm_release.cert-manager
   ]
 }

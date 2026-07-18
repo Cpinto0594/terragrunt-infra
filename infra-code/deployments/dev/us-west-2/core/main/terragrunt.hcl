@@ -65,7 +65,7 @@ inputs = {
 
     #Module Route53 - Input Vars
     route53_zones                            = local.region_vars.locals.route53_zones
-    master_domain                            = local.account_vars.locals.master_domain
+    route53_zone_records                     = local.region_vars.locals.route53_zone_records
 
     #Module CodeBuild - Check
     #iac_core_codebuild_projects             =   local.iac_core_codebuild_projects_computed

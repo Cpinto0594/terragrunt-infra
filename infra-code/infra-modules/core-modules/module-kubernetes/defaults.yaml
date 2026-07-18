@@ -1,6 +1,7 @@
 cluster_defaults:
   role_arn: EksClustersServiceRole
   authentication_mode: API
+  bootstrap_cluster_creator_admin_permissions: true
   cluster_security_groups:
     - eks_cluster_sec_group
   logs_retention_days: 30
@@ -22,9 +23,6 @@ cluster_node_defaults:
     min_size: 1
   update_config:
     max_unavailable: 1
-
-
-
 
 # Common Kubernetes RBAC roles:
 # - cluster-admin : Full cluster administrator

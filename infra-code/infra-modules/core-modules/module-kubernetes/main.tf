@@ -3,57 +3,76 @@ locals {
 
   defaults = yamldecode(file("${path.module}/defaults.yaml"))
 
-  cluster_name                        = var.cluster_name
-  role_arn                            = var.role_arn
-  cluster_security_groups             = var.cluster_security_groups
-  logs_retention_days                 = var.logs_retention_days
-  cluster_version                     = var.cluster_version
-  enabled_cluster_log_types           = var.enabled_cluster_log_types
-  oidc_enabled                        = var.oidc_enabled
-  authentication_mode                 = var.authentication_mode
-  authentication_admin_role_arn       = var.authentication_admin_role_arn
+  cluster_name              = var.cluster_name
+  role_arn                  = var.role_arn
+  cluster_security_groups   = var.cluster_security_groups
+  logs_retention_days       = var.logs_retention_days
+  cluster_version           = var.cluster_version
+  enabled_cluster_log_types = var.enabled_cluster_log_types
+  oidc_enabled              = var.oidc_enabled
 
-  subnet_ids                = var.subnet_ids
-  vpc_id                    = var.vpc_id
+  #AUTH config
+  authentication_mode                         = var.authentication_mode
+  bootstrap_cluster_creator_admin_permissions = var.bootstrap_cluster_creator_admin_permissions
+  authentication_admin_role_arns              = var.authentication_admin_role_arns
+  authentication_access_policy_associations   = var.authentication_access_policy_associations
+
+  subnet_ids = var.subnet_ids
+  vpc_id     = var.vpc_id
 
   # kube_clusters               =   var.kube_clusters
-  kube_node_groups          = var.kube_node_groups
-  cluster_addons            = var.cluster_addons
+  kube_node_groups = var.kube_node_groups
+  cluster_addons   = var.cluster_addons
 
-  cluster_addons_names      =   [ for idx, addon in local.cluster_addons: addon.name ]
-  cluster_addons_role_names =   { for idx, addon in local.cluster_addons: addon.name => addon.service_account_name
-                                  if  try(addon.service_account_name, null) != null 
-                                }
-  cluster_addons_roles_arns =   { for idx, addon in local.cluster_addons: addon.service_account_name => data.aws_iam_role.cluster_addons_role_names[addon.service_account_name].arn
-                                  if  try(addon.service_account_name, null) != null 
-                                }
+  cluster_addons_names = [for idx, addon in local.cluster_addons : addon.name]
+  cluster_addons_role_names = { for idx, addon in local.cluster_addons : addon.name => addon.service_account_name
+    if try(addon.service_account_name, null) != null
+  }
+  cluster_addons_roles_arns = { for idx, addon in local.cluster_addons : addon.service_account_name => data.aws_iam_role.cluster_addons_role_names[addon.service_account_name].arn
+    if try(addon.service_account_name, null) != null
+  }
 
-  security_group_ids        =   distinct([
-                                        for sec_group in concat(local.defaults["cluster_defaults"]["cluster_security_groups"], coalesce(local.cluster_security_groups, [])) :
-                                        data.aws_security_group.kube_sec_groups[sec_group].id
-                            ])
+  security_group_ids = distinct([
+    for sec_group in concat(local.defaults["cluster_defaults"]["cluster_security_groups"], coalesce(local.cluster_security_groups, [])) :
+    data.aws_security_group.kube_sec_groups[sec_group].id
+  ])
 
 
-  node_groups_computed      =   [ for indx, group in local.kube_node_groups :
-                                    merge(local.defaults["cluster_node_defaults"], try(group, {}))
-                                ]
+  node_groups_computed = [for indx, group in local.kube_node_groups :
+    merge(local.defaults["cluster_node_defaults"], try(group, {}))
+  ]
 
-  tags                      = var.default_tags
-
+  tags = var.default_tags
 }
 
+data "aws_vpcs" "app_vpc" {
+  tags = {
+    Name = local.vpc_id
+  }
+}
+
+
+data "aws_subnets" "subnets" {
+  filter {
+    name   = "vpc-id"
+    values = toset(data.aws_vpcs.app_vpc.ids)
+  }
+}
 
 resource "aws_eks_cluster" "eks_cluster" {
   name     = local.cluster_name
   role_arn = data.aws_iam_role.kube_iam_sec_role.arn
   version  = coalesce(local.cluster_version, local.defaults["cluster_defaults"]["cluster_version"])
-  # access_config {
-  #   authentication_mode = coalesce(local.authentication_mode, local.defaults["cluster_defaults"]["authentication_mode"])
-  #   bootstrap_cluster_creator_admin_permissions = true
-  # }
+  access_config {
+    authentication_mode = coalesce(local.authentication_mode, local.defaults["cluster_defaults"]["authentication_mode"])
+    bootstrap_cluster_creator_admin_permissions = coalesce(
+      local.bootstrap_cluster_creator_admin_permissions,
+      local.defaults["cluster_defaults"]["bootstrap_cluster_creator_admin_permissions"]
+    )
+  }
 
   vpc_config {
-    subnet_ids         = local.subnet_ids
+    subnet_ids         = data.aws_subnets.subnets.ids
     security_group_ids = local.security_group_ids
   }
 
@@ -62,54 +81,9 @@ resource "aws_eks_cluster" "eks_cluster" {
     Name = local.cluster_name
   })
 
-  depends_on = [aws_cloudwatch_log_group.kube_cluster_cloudwatch_logs]
+  depends_on = [data.aws_vpcs.app_vpc, aws_cloudwatch_log_group.kube_cluster_cloudwatch_logs]
 
 }
-
-#Access entry for the EKS cluster to allow a specific IAM role to access the cluster
-
-# Common Kubernetes RBAC roles:
-# - cluster-admin : Full cluster administrator
-# - admin         : Namespace administrator
-# - edit          : Developer (read/write)
-# - view          : Read-only
-#
-# Rough EKS policy equivalents:
-# - AmazonEKSClusterAdminPolicy -> cluster-admin
-# - AmazonEKSAdminPolicy        -> admin
-# - AmazonEKSEditPolicy         -> edit
-# - AmazonEKSViewPolicy         -> view
-
-# resource "aws_eks_access_entry" "aws_eks_access_entry_admin" {
-#   cluster_name      = aws_eks_cluster.eks_cluster.name
-#   principal_arn     = local.authentication_admin_role_arn
-#   #kubernetes_groups = ["group-1", "group-2"] #["cluster-admin"]
-#   type              = "STANDARD"
-# }
-
-
-## FOR ADMIN
-# resource "aws_eks_access_policy_association" "aws_eks_access_policy_association_admin" {
-#   cluster_name  = aws_eks_cluster.eks_cluster.name
-#   principal_arn = local.authentication_admin_role_arn
-
-#   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-#   access_scope {
-#     type = "cluster"
-#   }
-# }
-
-## FOR READONLY
-# resource "aws_eks_access_policy_association" "aws_eks_access_policy_association_developer_view" {
-#   cluster_name  = aws_eks_cluster.eks_cluster.name
-#   principal_arn = local.authentication_admin_role_arn
-#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-
-#   access_scope {
-#     type = "cluster"
-#   }
-# }
 
 
 #Node_groups roles must not contain path
@@ -117,7 +91,7 @@ resource "aws_eks_node_group" "eks_clusters_node_group" {
   for_each        = { for idx, node_group in local.kube_node_groups : (tonumber(idx) + 1) => node_group }
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "node_group_${local.cluster_name}_${each.key}"
-  subnet_ids      = local.subnet_ids
+  subnet_ids      = data.aws_subnets.subnets.ids
   version         = aws_eks_cluster.eks_cluster.version
 
   node_role_arn = data.aws_iam_role.kube_node_iam_sec_roles[coalesce(each.value.node_group_role, local.defaults["cluster_node_defaults"]["node_group_role"])].arn
@@ -147,6 +121,45 @@ resource "aws_eks_node_group" "eks_clusters_node_group" {
   })
 }
 
+#Access entry for the EKS cluster to allow a specific IAM role to access the cluster
+# Common Kubernetes RBAC roles:
+# - cluster-admin : Full cluster administrator
+# - admin         : Namespace administrator
+# - edit          : Developer (read/write)
+# - view          : Read-only
+#
+# Rough EKS policy equivalents:
+# - AmazonEKSClusterAdminPolicy -> cluster-admin
+# - AmazonEKSAdminPolicy        -> admin
+# - AmazonEKSEditPolicy         -> edit
+# - AmazonEKSViewPolicy         -> view
+
+resource "aws_eks_access_entry" "aws_eks_access_entries" {
+
+  for_each =  local.authentication_admin_role_arns
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = replace(each.value.principal_arn, "{ACCOUNT_ID}", var.account_id)
+  kubernetes_groups = coalesce(each.value.kubernetes_groups, ["view"])
+  type = coalesce(each.value.type, "STANDARD")
+
+  depends_on = [aws_eks_cluster.eks_cluster]
+}
+
+
+resource "aws_eks_access_policy_association" "aws_eks_access_policy_association_admin" {
+  for_each = local.authentication_access_policy_associations
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = replace(each.value.principal_arn, "{ACCOUNT_ID}", var.account_id)
+
+  policy_arn = each.value.policy_arn
+
+  access_scope {
+    type = coalesce(each.value.type, "cluster")
+  }
+
+  depends_on = [ aws_eks_cluster.eks_cluster ]
+}
+
 ## CLUSTER LOG GROUPS
 resource "aws_cloudwatch_log_group" "kube_cluster_cloudwatch_logs" {
   name              = "/aws/eks/${local.cluster_name}/cluster"
@@ -160,19 +173,19 @@ resource "aws_cloudwatch_log_group" "kube_cluster_cloudwatch_logs" {
 ## CLUSTER ADDONS
 
 data "aws_eks_addon_version" "most_recent" {
-  for_each                    = toset([ for index, addon in local.cluster_addons : addon.name ])
+  for_each           = toset([for index, addon in local.cluster_addons : addon.name])
   addon_name         = each.value
-  kubernetes_version =  aws_eks_cluster.eks_cluster.version
+  kubernetes_version = aws_eks_cluster.eks_cluster.version
   most_recent        = true
 }
 
 resource "aws_eks_addon" "addons" {
-  for_each                    = { for index, addon in local.cluster_addons : addon.name => addon }
-  cluster_name                = local.cluster_name
-  addon_name                  = each.key
-  addon_version               = coalesce(each.value.version , data.aws_eks_addon_version.most_recent[each.key].version )
-  
-  service_account_role_arn    = coalesce( local.cluster_addons_roles_arns[ each.value.service_account_name ] ,   each.value.service_account_arn )
+  for_each      = { for index, addon in local.cluster_addons : addon.name => addon }
+  cluster_name  = local.cluster_name
+  addon_name    = each.key
+  addon_version = coalesce(each.value.version, data.aws_eks_addon_version.most_recent[each.key].version)
+
+  service_account_role_arn    = coalesce(local.cluster_addons_roles_arns[each.value.service_account_name], each.value.service_account_arn)
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
 
@@ -205,7 +218,7 @@ resource "aws_iam_openid_connect_provider" "default_openid_provider" {
 
 ################### HANDLE ADDONS EXTRAS ################################
 data "aws_iam_policy_document" "pod_identity_csi_driver_policy" {
-  count = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0 
+  count = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -213,13 +226,13 @@ data "aws_iam_policy_document" "pod_identity_csi_driver_policy" {
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.default_openid_provider[0].url, "https://", "")}:aud"
       #variable = "${join("/", slice(split("/", aws_iam_openid_connect_provider.default_openid_provider[0].id), 1, 4))}:aud"
-      values   = ["sts.amazonaws.com"]
+      values = ["sts.amazonaws.com"]
     }
     condition {
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.default_openid_provider[0].url, "https://", "")}:sub"
       #variable = "${join("/", slice(split("/", aws_iam_openid_connect_provider.default_openid_provider[0].id), 1, 4))}:sub"
-      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+      values = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
     }
     principals {
       type        = "Federated"
@@ -229,12 +242,12 @@ data "aws_iam_policy_document" "pod_identity_csi_driver_policy" {
 }
 
 data "aws_iam_policy" "aws_csi_driver_policy" {
-  count = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0 
+  count = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0
   name  = "AmazonEBSCSIDriverPolicy"
 }
 
 resource "aws_iam_role" "pod_identity_cs_driver_role" {
-  count = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0 
+  count              = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0
   name               = "AmazonEKS_EBS_CSI_DriverRole"
   assume_role_policy = data.aws_iam_policy_document.pod_identity_csi_driver_policy[0].json
   tags = merge(local.tags, {
@@ -243,7 +256,7 @@ resource "aws_iam_role" "pod_identity_cs_driver_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "pod_identity_cs_driver_role-attach" {
-  count = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0 
+  count      = contains(local.cluster_addons_names, "aws-ebs-csi-driver") ? 1 : 0
   role       = aws_iam_role.pod_identity_cs_driver_role[0].name
   policy_arn = data.aws_iam_policy.aws_csi_driver_policy[0].arn
 }
@@ -257,7 +270,7 @@ data "aws_eks_cluster" "cluster_datasource" {
 
 
 data "tls_certificate" "cluster_tls_cert_issuer" {
-  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+  url        = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
   depends_on = [aws_eks_cluster.eks_cluster]
 }
 
@@ -280,7 +293,7 @@ data "aws_iam_role" "kube_node_iam_sec_roles" {
 }
 
 data "aws_iam_role" "cluster_addons_role_names" {
-    for_each = toset([ for name, role_name in local.cluster_addons_role_names :  role_name ])
-    name = each.value
-    depends_on = [ aws_iam_role.pod_identity_cs_driver_role ]
+  for_each   = toset([for name, role_name in local.cluster_addons_role_names : role_name])
+  name       = each.value
+  depends_on = [aws_iam_role.pod_identity_cs_driver_role]
 }

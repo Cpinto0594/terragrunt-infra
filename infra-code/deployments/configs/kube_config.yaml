@@ -30,7 +30,9 @@ kube_cluster_roles:
       - apiGroups: [""]
         resources: ["nodes"]
         verbs: ["watch", "list"]
-
+      - apiGroups: ["discovery.k8s.io"]
+        resources: ["endpointslices"]
+        verbs: ["get", "watch", "list"]
 
 kube_role_bindings:
   - kind: ServiceAccount
@@ -40,7 +42,7 @@ kube_role_bindings:
       - api_group: rbac.authorization.k8s.io
         kind: ClusterRole
         name: "@cluster-admin"
-        
+
   - kind: ServiceAccount
     name: external-dns
     namespace: networking
@@ -48,3 +50,16 @@ kube_role_bindings:
       - api_group: rbac.authorization.k8s.io
         kind: ClusterRole
         name: external-dns
+
+#AUTHENTICATION CONFIG
+cluster_principals_authentication_config:
+  authentication_admin_role_arns:
+    root_user:
+      principal_arn: arn:aws:iam::324711057459:root
+      kubernetes_groups: ["cluster-admin"]
+      type: STANDARD
+  authentication_access_policy_associations:
+    root_user_eks_cluster_admin_policy_association:
+      principal_arn: arn:aws:iam::324711057459:root
+      policy_arn: arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
+      type: cluster

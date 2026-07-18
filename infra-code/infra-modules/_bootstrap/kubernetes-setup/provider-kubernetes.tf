@@ -2,17 +2,17 @@ locals {
   kube_cluster_name = var.kube_cluster_name
   providers = {
     kubectl = {
-      version = "1.19.0"
+      version = "1.19.0" # TODO: FROM VARS
     }
   }
 }
 
 terraform {
-  required_providers {
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-    }
-  }
+  # required_providers {
+  #   kubectl = {
+  #     source  = "gavinbunney/kubectl"
+  #   }
+  # }
 }
 
 data "aws_eks_cluster" "eks_cluster" {

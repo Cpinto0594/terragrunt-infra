@@ -18,12 +18,8 @@ variable "default_tags" {
   type        = map(string)
 }
 
-variable "master_domain" {
-  description = "Master Domain"
-  type        = string
-}
-
 variable "route53_zones" {
+  default = {}
   description = "Route53 Zones"
   type = map(object({
     comment : optional(string, null)
@@ -33,12 +29,14 @@ variable "route53_zones" {
 }
 
 variable "route53_zone_records" {
+  default = {}
   description = "Route53 Zone Records"
   type = map(object({
     zone_name : string
     description : optional(string, null)
     type : string
     ttl : optional(number, 300)
-    records : optional(list(string), [])
+    records : optional(list(string), null)
+    records_from_zone : optional(string, null)
   }))
 }

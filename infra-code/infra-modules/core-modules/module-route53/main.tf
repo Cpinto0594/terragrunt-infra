@@ -1,11 +1,11 @@
 locals {
-  
-  route53_zones   = var.route53_zones
-  route53_records = var.route53_zone_records
+
+  route53_zones   = coalesce(var.route53_zones, {})
+  route53_records = coalesce(var.route53_zone_records, {})
 
   # Only zones with a vpc name set (private hosted zones)
   private_zones = {
-    for name, config in local.route53_zones :
+    for name, config in coalesce(local.route53_zones, {}) :
     name => config if try(config.vpc, null) != null
   }
 
@@ -37,6 +37,8 @@ resource "aws_route53_zone" "zones" {
   tags = merge(var.default_tags, {
     Name = each.key
   })
+
+  depends_on = [data.aws_vpc.zones_vpc]
 }
 
 # for prod records high ttl is recommended since the NS records are not expected to change frequently ( 86400 - 172800 / 1 - 2 days ).
@@ -48,7 +50,12 @@ resource "aws_route53_record" "records" {
   name    = each.key
   type    = each.value.type
   ttl     = each.value.ttl
-  records = each.value.records
 
+  records = coalesce(
+    each.value.records,
+    each.value.records_from_zone != null ? aws_route53_zone.zones[each.value.records_from_zone].name_servers : null
+  )
+
+  depends_on = [aws_route53_zone.zones]
 }
 
