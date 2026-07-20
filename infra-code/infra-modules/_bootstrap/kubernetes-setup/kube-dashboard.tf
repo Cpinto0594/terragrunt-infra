@@ -40,12 +40,23 @@ resource "helm_release" "kubernetes-dashboard" {
     {
       name  = "rbac.clusterReadOnlyRole"
       value = "true"
+    },
+    {
+      name  = "kong.proxy.type"
+      value = "LoadBalancer" 
+      #set to loadbalancer to expose the dashboard externally, set to ClusterIP to expose it internally only
+    # then get the external ip of the loadbalancer and create a route53 record to point to it, then access the dashboard via the route53 record
+    # kubectl get svc dev-kubernetes-dashboard-kong-proxy -n dev-kubernetes-dashboard -w
+    },
+    {
+      name  = "kong.proxy.http.enabled"
+      value = "true"
     }
   ]
 
   depends_on = [
     data.aws_eks_node_groups.eks_cluster_node_groups,
-    kubernetes_namespace_v1.namespaces
+    kubernetes_namespace_v1.namespaces,
   ]
 
 }
@@ -85,7 +96,8 @@ spec:
 EOF
 
   depends_on = [
-    helm_release.kubernetes-dashboard
+    helm_release.kubernetes-dashboard,
+    kubectl_manifest.cluster_issuer
   ]
 }
 

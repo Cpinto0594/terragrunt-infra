@@ -1,9 +1,13 @@
-#The namespace name format is <environment>-<namespace_name> to avoid conflicts with other environments. The same applies to service accounts and cluster roles.
+enable_attach_environment_to_namespace: true
+
+#The namespace name format is <environment>-<namespace_name> to avoid conflicts with other environments. 
+#The same applies to service accounts and cluster roles.
 kube_namespaces:
   - namespace
   - kubernetes-dashboard
   - networking
   - prom-grafana-stack
+  - headlamp
 
 kube_node_groups:
   - {} #empty object means 1 node with default configs defined in defaults.yml
@@ -51,7 +55,7 @@ kube_role_bindings:
         kind: ClusterRole
         name: external-dns
 
-#AUTHENTICATION CONFIG
+#CLUSTER AUTHENTICATION CONFIG
 cluster_principals_authentication_config:
   authentication_admin_role_arns:
     root_user:
