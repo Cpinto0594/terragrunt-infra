@@ -8,10 +8,10 @@ DEV_USER_POLICY_NAME=DevAssumeRole_Policy
 DEV_USER_NAME=Developer
 
 
-DEV_ROLE_POLICY_DOCUMENT="file://aws-initial-config/resources/policies/PermissionsForDevRole_Policy.json"
-COST_EXPLORER_POLICY_DOCUMENT="file://aws-initial-config/resources/policies/CostExplorer_Policy.json"
-DEV_USER_POLICY_DOCUMENT="file://aws-initial-config/resources/policies/DevAssumeRole_Policy.json"
-ACCOUNT_COLOR_POLICY_DOCUMENT="file://aws-initial-config/resources/policies/GetAccountColors_Policy.json"
+DEV_ROLE_POLICY_DOCUMENT="file://configs/aws-initial-config/resources/policies/PermissionsForDevRole_Policy.json"
+COST_EXPLORER_POLICY_DOCUMENT="file://configs/aws-initial-config/resources/policies/CostExplorer_Policy.json"
+DEV_USER_POLICY_DOCUMENT="file://configs/aws-initial-config/resources/policies/DevAssumeRole_Policy.json"
+ACCOUNT_COLOR_POLICY_DOCUMENT="file://configs/aws-initial-config/resources/policies/GetAccountColors_Policy.json"
 
 ACCOUNT_MANAGEMENT_POLICY_DOCUMENT="aws-initial-config/resources/policies/AccountManagement_Policy.json"
 ROLE_TRUST_POLICY_DOCUMENT="aws-initial-config/resources/policies/RoleDeveloperTrust_Policy.json"

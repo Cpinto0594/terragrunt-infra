@@ -1,5 +1,0 @@
-defaults:
-  raffle_backend:
-    lang: nodejs
-  identity_oauth2:
-    lang: java

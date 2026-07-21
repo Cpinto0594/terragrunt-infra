@@ -8,7 +8,10 @@ ROLE_NAME=Developer
 SESSION_NAME=Developer_Session
 CURR_DATE=$(date +"%Y-%m-%d_%H-%M-%S" )
 ADMIN_USER_SSO_PROFILE=AdminSSO
+LOGGED_IN_SSO=false
 
+ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ echo "Current directory: $DIR"
 
 
 echo "====================== Backing up old credentials file   =========================="
@@ -17,18 +20,17 @@ mkdir -p "$HOME/.aws/"
 if [ -f $HOME/.aws/config ]; then
     cp "$HOME/.aws/config" "$HOME/.aws/config_backup_$CURR_DATE"
 else
-    cp "./aws/config.sample" "$HOME/.aws/config"
+    cp "$DIR/configs/aws/config.sample" "$HOME/.aws/config"
 fi;
+
+
+STS_AUTH_RESPONSE=$(aws sts assume-role --role-arn "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" --role-session-name $SESSION_NAME --profile $ADMIN_USER_SSO_PROFILE)
+SSO_AUTH_RESPONSE=$(aws sts get-caller-identity --profile $ADMIN_USER_SSO_PROFILE)
+
 
 ##Make sure to add the default profile to the config file if it doesn't exist, to avoid issues with the AWS cli when using the assume-role command. 
 if ! grep -q "^\[default\]" "$HOME/.aws/config"; then
-    printf "\n[default]\n" >> "$HOME/.aws/config"
-fi
-if ! grep -q "^source_profile=$ROLE_NAME$" "$HOME/.aws/config"; then
-    printf "source_profile=$ROLE_NAME\n" >> "$HOME/.aws/config"
-fi
-if ! grep -q "^role_arn=arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME$" "$HOME/.aws/config"; then
-    printf "role_arn=arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME\n" >> "$HOME/.aws/config"
+    printf "\n[default]\nsource_profile=$ROLE_NAME\nrole_arn=arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME\n" >> "$HOME/.aws/config"
 fi
 if ! grep -q "^\[profile $ROLE_NAME\]$" "$HOME/.aws/config"; then
     printf "\n[profile $ROLE_NAME]\nregion = us-west-2\noutput = json\n" >> "$HOME/.aws/config"
@@ -38,16 +40,37 @@ fi
 if ! grep -q "^\[profile $ADMIN_USER_SSO_PROFILE\]" "$HOME/.aws/config"; then
     echo "====================== AWS Sign In =========================="
     aws sso login --profile $ADMIN_USER_SSO_PROFILE
+    LOGGED_IN_SSO=true
 fi
 
-cp "./aws/credentials.sample" "$HOME/.aws/credentials"
+if [ -z "$SSO_AUTH_RESPONSE" ]; then
+    echo "Error: Failed to get caller identity. Signing in to AWS SSO..."
+    aws sso login --profile $ADMIN_USER_SSO_PROFILE
+    SSO_AUTH_RESPONSE=$(aws sts get-caller-identity --profile $ADMIN_USER_SSO_PROFILE)
+    if [ -z "$SSO_AUTH_RESPONSE" ]; then
+        echo "Error: Failed to get caller identity after AWS SSO login."
+        exit 1
+    fi
+fi
+
+if [ -z "$STS_AUTH_RESPONSE" ]; then
+    echo "Error: Failed to assume role. Signing in to AWS assuming role..."
+    STS_AUTH_RESPONSE=$(aws sts assume-role --role-arn "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" --role-session-name $SESSION_NAME --profile $ADMIN_USER_SSO_PROFILE)
+    if [ -z "$STS_AUTH_RESPONSE" ]; then
+        echo "Error: Failed to assume role after AWS SSO login."
+        exit 1
+    fi
+fi
+
+
+cp "$DIR/configs/aws/credentials.sample" "$HOME/.aws/credentials"
 #sed '/role_arn/s/^/#/' $HOME/.aws/config > ./tmp_file && mv ./tmp_file $HOME/.aws/config
 
 echo "====================== Assume Role   =========================="
-AUTH_RESPONSE=$(aws sts assume-role --role-arn "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" --role-session-name $SESSION_NAME --profile $ADMIN_USER_SSO_PROFILE)
-ACC_KEY=$(echo "$AUTH_RESPONSE" | jq -r '.Credentials.AccessKeyId ')
-SEC_ACC_KEY=$(echo "$AUTH_RESPONSE" | jq -r '.Credentials.SecretAccessKey ')
-SEC_ACC_TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.Credentials.SessionToken ')
+
+ACC_KEY=$(echo "$STS_AUTH_RESPONSE" | jq -r '.Credentials.AccessKeyId ')
+SEC_ACC_KEY=$(echo "$STS_AUTH_RESPONSE" | jq -r '.Credentials.SecretAccessKey ')
+SEC_ACC_TOKEN=$(echo "$STS_AUTH_RESPONSE" | jq -r '.Credentials.SessionToken ')
 
 echo ""
 echo "Done"

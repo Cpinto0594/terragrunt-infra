@@ -6,7 +6,7 @@ defaults:
   cert_manager_name: "letsencrypt"
   cpu_limit: 250m
   cpu_request: 25m
-  domain: renderapps.net
+  domain: capilabs.dev
   mem_limit: 512Mi
   mem_request: 128Mi
   min_replicas: 1
@@ -27,19 +27,19 @@ defaults:
 dev:
   name: dev
   target: dev
-  domain: dev.renderapps.net
+  domain: dev.capilabs.dev
   namespace: dev-namespace
 
 
 qa:
   name: qa
   target: qa
-  domain: qa.renderapps.net
+  domain: qa.capilabs.dev
   namespace: qa-namespace
 
 prod:
   name: prod
   target: prod
-  domain: renderapps.net
+  domain: capilabs.dev
   replicas: 3
   namespace: prod-namespace
