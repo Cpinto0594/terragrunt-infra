@@ -3,24 +3,25 @@ enable_attach_environment_to_namespace: true
 #The namespace name format is <environment>-<namespace_name> to avoid conflicts with other environments. 
 #The same applies to service accounts and cluster roles.
 kube_namespaces:
-  - namespace
-  - kubernetes-dashboard
+  - kube-monitoring
   - networking
-  - prom-grafana-stack
-  - headlamp
 
 kube_node_groups:
   - {} #empty object means 1 node with default configs defined in defaults.yml
 
 kube_infra_service_accounts:
-  admin-sac:
+  kube-dashboard-admin:
     namespaces:
-      - namespace
+      - kube-monitoring
   external-dns:
     namespaces:
       - networking
     annotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::{ACCOUNT_ID}:role/ExternalDnsServiceAccountRole
+      eks.amazonaws.com/role-arn: arn:aws:iam::{{AWS_ACCOUNT}}:role/ExternalDnsServiceAccountRole
+  headlamp-admin:
+    namespaces:
+      - kube-monitoring
+
 
 kube_cluster_roles:
   external-dns:
@@ -40,8 +41,8 @@ kube_cluster_roles:
 
 kube_role_bindings:
   - kind: ServiceAccount
-    name: admin-sac
-    namespace: namespace
+    name: kube-dashboard-admin
+    namespace: kube-monitoring
     bindings:
       - api_group: rbac.authorization.k8s.io
         kind: ClusterRole
@@ -54,16 +55,24 @@ kube_role_bindings:
       - api_group: rbac.authorization.k8s.io
         kind: ClusterRole
         name: external-dns
+  
+  - kind: ServiceAccount
+    name: headlamp-admin
+    namespace: kube-monitoring
+    bindings:
+      - api_group: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: "@cluster-admin"
 
 #CLUSTER AUTHENTICATION CONFIG
 cluster_principals_authentication_config:
   authentication_admin_role_arns:
     root_user:
-      principal_arn: arn:aws:iam::324711057459:root
+      principal_arn: arn:aws:iam::{{AWS_ACCOUNT}}:root
       kubernetes_groups: ["cluster-admin"]
       type: STANDARD
   authentication_access_policy_associations:
     root_user_eks_cluster_admin_policy_association:
-      principal_arn: arn:aws:iam::324711057459:root
+      principal_arn: arn:aws:iam::{{AWS_ACCOUNT}}:root
       policy_arn: arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
       type: cluster

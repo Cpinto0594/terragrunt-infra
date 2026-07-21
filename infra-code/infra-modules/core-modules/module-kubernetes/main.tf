@@ -138,7 +138,7 @@ resource "aws_eks_access_entry" "aws_eks_access_entries" {
 
   for_each =  local.authentication_admin_role_arns
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = replace(each.value.principal_arn, "{ACCOUNT_ID}", var.account_id)
+  principal_arn = replace(each.value.principal_arn, "{{AWS_ACCOUNT}}", var.account_id)
   kubernetes_groups = coalesce(each.value.kubernetes_groups, ["view"])
   type = coalesce(each.value.type, "STANDARD")
 
@@ -149,7 +149,7 @@ resource "aws_eks_access_entry" "aws_eks_access_entries" {
 resource "aws_eks_access_policy_association" "aws_eks_access_policy_association_admin" {
   for_each = local.authentication_access_policy_associations
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = replace(each.value.principal_arn, "{ACCOUNT_ID}", var.account_id)
+  principal_arn = replace(each.value.principal_arn, "{{AWS_ACCOUNT}}", var.account_id)
 
   policy_arn = each.value.policy_arn
 

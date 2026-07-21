@@ -1,21 +1,19 @@
 locals {
-  headlamp_domain_name = "headlamp.${var.r53_domain_name}"
+  headlamp_domain_name             = "headlamp.${var.r53_domain_name}"
+  namespace_name                   = "${var.environment}-kube-monitoring"
+  basic_auth_secret_name           = "${var.environment}-headlamp-basic-auth"
+  headlamp_certificate_name        = "${var.environment}-headlamp-certificate"
+  headlamp_certificate_secret_name = "${var.environment}-headlamp-certificate-secret-tls"
 }
 
-# 1. Create the dedicated headlamp namespace
-resource "kubernetes_namespace_v1" "headlamp" {
-  metadata {
-    name = "headlamp"
-  }
-}
 
 # 2. Store your basic authentication user/password pair
 # Generates an Apache htpasswd file content (Username: admin / Password: MySecurePassword123)
 # To generate a custom one, use the shell command: htpasswd -nb user pass
 resource "kubernetes_secret_v1" "basic_auth" {
   metadata {
-    name      = "headlamp-basic-auth"
-    namespace = kubernetes_namespace_v1.headlamp.metadata[0].name
+    name      = local.basic_auth_secret_name
+    namespace = local.namespace_name
   }
 
   data = {
@@ -26,11 +24,12 @@ resource "kubernetes_secret_v1" "basic_auth" {
 
 # 3. Primary Helm deployment for Headlamp
 resource "helm_release" "headlamp" {
-  name       = "headlamp"
+  name       = "${var.environment}-headlamp"
   repository = "https://kubernetes-sigs.github.io/headlamp"
   chart      = "headlamp"
   version    = "0.43.0"
-  namespace  = kubernetes_namespace_v1.headlamp.metadata[0].name
+  namespace  = local.namespace_name
+  wait       = false
 
   values = [
     yamlencode({
@@ -41,58 +40,43 @@ resource "helm_release" "headlamp" {
 
       args = [
         "-in-cluster",
+        "-allowed-hosts=*",
+        "-username-password-file=/etc/headlamp-auth/auth"
       ]
 
-      # 4. Ingress configuration with Basic Auth annotations
-      ingress = {
-        enabled          = false
-        ingressClassName = "alb"
-
-        hosts = [
-          {
-            host = local.headlamp_domain_name # Update to your local or real domain
-            paths = [
-              {
-                path     = "/"
-                pathType = "Prefix"
-                type     = "Prefix"
-
-              }
-            ]
+      volumes = [
+        {
+          name = "${var.environment}-headlamp-auth-volume"
+          secret = {
+            secretName = local.basic_auth_secret_name
           }
-        ]
-
-        annotations = {
-
-          "kubernetes.io/ingress.class" = "nginx"
-          # Links NGINX directly to our basic auth credential secret
-          "nginx.ingress.kubernetes.io/auth-type"   = "basic"
-          "nginx.ingress.kubernetes.io/auth-secret" = "headlamp-basic-auth"
-          "nginx.ingress.kubernetes.io/auth-realm"  = "Authentication Required - Headlamp"
         }
-      }
+      ]
+
+      volumeMounts = [
+        {
+          name      = "${var.environment}-headlamp-auth-volume"
+          mountPath = "/etc/headlamp-auth"
+          readOnly  = true
+        }
+      ]
 
       service = {
         type       = "LoadBalancer"
         port       = 80
-        targetPort = "http"
 
-
-        # AWS Specific annotations for the Service object
         annotations = {
-          # Specifies the type of load balancer. 'nlb-ip' is modern and recommended for AWS.
-          "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
-          "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
+          "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
+          "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+          "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
 
-          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "tcp"
-          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "traffic-port"
+          # Passes raw encrypted traffic directly to the self-signed pod
+          "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "tcp"
+
+          # Health check must look for HTTPS now
+          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "http"
           "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = ""
-
-          # Links NGINX directly to our basic auth credential secret
-          "nginx.ingress.kubernetes.io/auth-type"   = "basic"
-          "nginx.ingress.kubernetes.io/auth-secret" = "headlamp-basic-auth"
-          "nginx.ingress.kubernetes.io/auth-realm"  = "Authentication Required - Headlamp"
-
+          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "traffic-port"
         }
       }
 
@@ -104,4 +88,45 @@ resource "helm_release" "headlamp" {
       }
     })
   ]
+
+  depends_on = [
+    kubernetes_secret_v1.basic_auth
+  ]
 }
+
+# resource "kubectl_manifest" "headlamp_letsencrypt_cert" {
+#   yaml_body = <<YAML
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: ${local.headlamp_certificate_name}
+#   namespace: ${local.networking_namespace}
+# spec:
+#   secretName: ${local.headlamp_certificate_secret_name}
+#   issuerRef:
+#     name: ${local.cluster_issuer_name}
+#     kind: ClusterIssuer
+#   dnsNames:
+#     - "capilabs.dev"
+# YAML
+#   lifecycle {
+#     ignore_changes = []
+#   }
+
+# }
+
+# resource "kubectl_manifest" "headlamp_tls_cert_secret" {
+#   apply_only    = true
+#   ignore_fields = ["data", "annotations"]
+#   yaml_body     = <<YAML
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: ${local.headlamp_certificate_secret_name}
+#   namespace: ${local.namespace_name}
+# data:
+#   tls.crt: ""
+#   tls.key: ""
+# YAML
+
+# }

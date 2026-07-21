@@ -1,6 +1,6 @@
 
 locals {
-  dashboard_namespace          = "${var.environment}-kubernetes-dashboard"
+  dashboard_namespace          = "${var.environment}-kube-monitoring"
   dashboard_name               = "${var.environment}-kubernetes-dashboard"
   dashboard_ingress            = local.dashboard_name
   dashboard_ingress_tls_secret = "${local.dashboard_name}-tls"
@@ -46,7 +46,7 @@ resource "helm_release" "kubernetes-dashboard" {
       value = "LoadBalancer" 
       #set to loadbalancer to expose the dashboard externally, set to ClusterIP to expose it internally only
     # then get the external ip of the loadbalancer and create a route53 record to point to it, then access the dashboard via the route53 record
-    # kubectl get svc dev-kubernetes-dashboard-kong-proxy -n dev-kubernetes-dashboard -w
+    # kubectl get svc dev-kubernetes-dashboard-kong-proxy -n dev-kube-monitoring -w
     },
     {
       name  = "kong.proxy.http.enabled"

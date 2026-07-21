@@ -6,7 +6,7 @@ locals {
   AUTH
 
   dns_domain                        =   var.dns_domain
-  namespace                         =   "${var.environment}-prom-grafana-stack"
+  namespace                         =   "${var.environment}-kube-monitoring"
   
   # Define a values file for the prometheus helm chart
   kube_prometheus_stack_values = <<-VALUES
@@ -15,14 +15,14 @@ locals {
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: gp2
+              storageClassName: gp3
               accessModes: ["ReadWriteOnce"]
               persistentVolumeReclaimPolicy: Retain
               finalizers:
                 - kubernetes.io/pvc-protection
               resources:
                 requests:
-                  storage: 30Gi
+                  storage: 20Gi
     alertmanager:
       ingress:
         annotations:
@@ -61,7 +61,7 @@ locals {
       persistence:
         enabled: true
         type: pvc
-        storageClassName: gp2
+        storageClassName: "gp3"
         accessModes:
         - ReadWriteOnce
         size: 4Gi
@@ -100,7 +100,7 @@ resource "helm_release" "kube-prometheus-stack" {
   namespace  = local.namespace
   chart      = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
-  version    = "45.18.0"
+  version    = "87.17.0"
   values     = [local.kube_prometheus_stack_values]
   create_namespace = true
   

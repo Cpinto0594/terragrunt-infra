@@ -45,7 +45,7 @@ resource "kubernetes_service_account_v1" "kubernetes_service_account" {
       "app.kubernetes.io/name" = "${var.environment}-${each.key}"
     }
 
-    annotations = { for key, value in coalesce(each.value.annotations, {}) : key => replace( value, "{ACCOUNT_ID}", var.account_id ) }
+    annotations = { for key, value in coalesce(each.value.annotations, {}) : key => replace( value, "{{AWS_ACCOUNT}}", var.account_id ) }
   }
   secret {
     name = kubernetes_secret_v1.kubernetes_account_secret[each.key].metadata[0].name

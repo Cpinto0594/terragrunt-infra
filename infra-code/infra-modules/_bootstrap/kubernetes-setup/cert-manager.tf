@@ -40,7 +40,17 @@ spec:
     privateKeySecretRef:
       name: ${local.cluster_issuer_name}
     solvers:
-      - http01:
+      - selector:
+          dnsZones:
+            - "capilabs.dev" # Tu subdominio de Headlamp
+        dns01:
+          cloudflare:
+            email: ${var.cert_manager_email} # Tu correo de Cloudflare
+            apiTokenSecretRef:
+              name: ${kubernetes_secret_v1.cloudflare_api_token.metadata[0].name}
+              key: api-token
+      - selector: {}
+        http01:
           ingress:
             ingressClassName: nginx
 EOF
@@ -48,4 +58,16 @@ EOF
   depends_on = [
     helm_release.cert-manager
   ]
+}
+
+
+resource "kubernetes_secret_v1" "cloudflare_api_token" {
+  metadata {
+    name      = "${var.environment}-cloudflare-api-token-secret"
+    namespace = local.networking_namespace # Asegúrate de que coincida con el namespace de cert-manager
+  }
+
+  data = {
+    "api-token" = "" # Reemplaza con tu token real
+  }
 }
