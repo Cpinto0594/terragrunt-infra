@@ -2,4 +2,5 @@
 .terraform
 .terraform.lock*
 *.tfplan
+tfplan/**
 **/node_modules
