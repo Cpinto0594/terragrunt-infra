@@ -22,8 +22,9 @@ terraform {
 
 inputs = {
     
-    dns_domain          =       local.account_vars.locals.r53_domain_name
-    kube_cluster_name   =       "${local.namespace_vars.locals.environment}_infra_cluster"
+    dns_domain            =       local.account_vars.locals.r53_domain_name
+    master_domain         =       local.account_vars.locals.master_domain
+    kube_cluster_name     =       "${local.namespace_vars.locals.environment}_infra_cluster"
 
     #default_tags = merge( local.namespace_vars.locals.namespace_tags, local.region_vars.locals.region_tags, {terraform: true} )
 }

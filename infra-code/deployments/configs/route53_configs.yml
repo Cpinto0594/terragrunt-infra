@@ -2,6 +2,7 @@
 # vpc - (Optional) VPC Name tag to associate with a private hosted zone.
 #       Looked up via data "aws_vpc" filtered by Name tag. Set to null for public zones.
 route_zones:
+  {}
   # testi.com:
   #   comment: Primary master domain zone
   #   force_destroy: true
@@ -9,6 +10,7 @@ route_zones:
 
 # Records for zones
 route_zone_records:
+  {}
   # dev.testi.com:
   #   zone_name: testi.com
   #   type: NS

@@ -54,6 +54,12 @@ variable "cert_manager_email" {
   type  =  string
 }
 
+variable "master_domain" {
+  description = "master_domain"
+  type        =  string
+}
+
+
 variable "r53_domain_name" {
   description = "r53_domain_name"
   type        =  string

@@ -40,15 +40,15 @@ spec:
     privateKeySecretRef:
       name: ${local.cluster_issuer_name}
     solvers:
-      - selector:
-          dnsZones:
-            - "capilabs.dev" # Tu subdominio de Headlamp
-        dns01:
-          cloudflare:
-            email: ${var.cert_manager_email} # Tu correo de Cloudflare
-            apiTokenSecretRef:
-              name: ${kubernetes_secret_v1.cloudflare_api_token.metadata[0].name}
-              key: api-token
+      #- selector:
+      #    dnsZones:
+      #      - "capilabs.dev" # Tu subdominio de Headlamp
+      #  dns01:
+      #    cloudflare:
+      #      email: ${var.cert_manager_email} # Tu correo de Cloudflare
+      #      apiTokenSecretRef:
+      #        name: ${kubernetes_secret_v1.cloudflare_api_token.metadata[0].name}
+      #        key: api-token
       - selector: {}
         http01:
           ingress:

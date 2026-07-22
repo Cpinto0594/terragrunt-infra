@@ -1,11 +1,9 @@
 locals {
-  master_domain                    = var.master_domain
   headlamp_domain_name             = "headlamp.${var.r53_domain_name}"
   namespace_name                   = "${var.environment}-kube-monitoring"
   basic_auth_secret_name           = "${var.environment}-headlamp-basic-auth"
   headlamp_certificate_name        = "${var.environment}-headlamp-certificate"
   headlamp_certificate_secret_name = "${var.environment}-headlamp-certificate-secret-tls"
-  headlamp_service_name            = "${var.environment}-headlamp"
 }
 
 
@@ -26,7 +24,7 @@ resource "kubernetes_secret_v1" "basic_auth" {
 
 # 3. Primary Helm deployment for Headlamp
 resource "helm_release" "headlamp" {
-  name       = local.headlamp_service_name
+  name       = "${var.environment}-headlamp"
   repository = "https://kubernetes-sigs.github.io/headlamp"
   chart      = "headlamp"
   version    = "0.43.0"
@@ -64,8 +62,8 @@ resource "helm_release" "headlamp" {
       ]
 
       service = {
-        type = "LoadBalancer"
-        port = 80
+        type       = "LoadBalancer"
+        port       = 80
 
         annotations = {
           "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
@@ -94,31 +92,39 @@ resource "helm_release" "headlamp" {
   ]
 }
 
-########## TEMPORAL WHILE THE AWS ROUTE 53 REGISTRATION IS NOT DONE ##########
-data "kubernetes_service_v1" "headlamp_service" {
-  metadata {
-    name      = local.headlamp_service_name
-    namespace = local.namespace_name
-  }
+# resource "kubectl_manifest" "headlamp_letsencrypt_cert" {
+#   yaml_body = <<YAML
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: ${local.headlamp_certificate_name}
+#   namespace: ${local.networking_namespace}
+# spec:
+#   secretName: ${local.headlamp_certificate_secret_name}
+#   issuerRef:
+#     name: ${local.cluster_issuer_name}
+#     kind: ClusterIssuer
+#   dnsNames:
+#     - "capilabs.dev"
+# YAML
+#   lifecycle {
+#     ignore_changes = []
+#   }
 
-  # Forces Terraform to wait until the Helm chart finishes deploying the resource
-  depends_on = [helm_release.headlamp]
-}
+# }
 
+# resource "kubectl_manifest" "headlamp_tls_cert_secret" {
+#   apply_only    = true
+#   ignore_fields = ["data", "annotations"]
+#   yaml_body     = <<YAML
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: ${local.headlamp_certificate_secret_name}
+#   namespace: ${local.namespace_name}
+# data:
+#   tls.crt: ""
+#   tls.key: ""
+# YAML
 
-resource "cloudflare_dns_record" "headlamp_loadbalancer_dns_record" {
-  count   = 1
-  zone_id = data.cloudflare_zone.infra_zone.id
-  name    = "headlamp.${local.master_domain}"
-  ttl     = 1
-  type    = "CNAME"
-  comment = "Headlamp Domain verification record"
-  content = data.kubernetes_service_v1.headlamp_service.status[0].load_balancer[0].ingress[0].hostname
-  proxied = true
-
-  # tags = toset([
-  #   for key, value in merge(local.tags, {
-  #     Name = "grafana.${var.master_domain}"
-  #   }) : "${key}:${value}"
-  # ])
-}
+# }

@@ -32,40 +32,19 @@ services:
 #terragrunt run --all apply  --filter 'deployments/dev/us-west-2/core/main/' -out-dir tfplan
 #terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/main/'
 
- # terragrunt run --all plan  --filter 'deployments/dev/us-west-2/core/kubernetes/**' -out-dir tfplan
-#terragrunt run --all apply  --filter 'deployments/dev/us-west-2/core/kubernetes/**' -out-dir tfplan
-#terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/kubernetes/**'
+ # terragrunt run --all plan  --filter 'deployments/dev/us-west-2/core/kubernetes/installation' -out-dir tfplan
+#terragrunt run --all apply  --filter 'deployments/dev/us-west-2/core/kubernetes/installation' -out-dir tfplan
+#terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/kubernetes/installation'
 
- # terragrunt run --all plan  --filter 'deployments/dev/us-west-2/core/kubernetes/**' -out-dir tfplan
-#terragrunt run --all apply  --filter 'deployments/dev/us-west-2/core/kubernetes/' -out-dir tfplan
-
-#docker run -ti --rm -v $HOME/.aws:/root/.aws -v ${HOME}/.ssh:/root/.ssh -v .:/apps alpine/terragrunt:1.7.4 bash
-#terragrunt run-all show -json plan > plan.json
-
-#terragrunt init  -reconfigure  --filter deployments/dev/us-west-2/core/main/
-#terragrunt init  -upgrade  --filter deployments/dev/us-west-2/core/main/
-
-#cd base/dev/global/core && terragrunt backend bootstrap  --all && cd ~/terragrunt-infra/infra-code
-#cd deployment/dev/us-west-2/core/main/ && terragrunt backend bootstrap --all &&  cd ~/terragrunt-infra/infra-code
-#terragrunt backend delete --all  --non-interactive
-
-
-#terragrunt run --all plan --filter 'base/dev/global/core/**' -out-dir=tfplan
-#terragrunt run --all apply --filter 'base/dev/global/core/**' --parallelism=4  -out-dir=tfplan
-
-
-#terragrunt run --all plan --filter 'deployments/dev/us-west-2/core/main/' -out-dir=tfplan
-#terragrunt run --all apply --filter 'deployments/dev/us-west-2/core/main/' --parallelism=4  -out-dir=tfplan
-
-#terragrunt run --all plan --filter 'deployments/dev/us-west-2/core/kubernetes/' -out-dir=tfplan
-#terragrunt run --all apply --filter 'deployments/dev/us-west-2/core/kubernetes/' --parallelism=4  -out-dir=tfplan
+  # terragrunt run --all plan  --filter 'deployments/dev/us-west-2/core/kubernetes/setup' -out-dir tfplan
+#terragrunt run --all apply  --filter 'deployments/dev/us-west-2/core/kubernetes/setup' -out-dir tfplan
+#terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/kubernetes/setup'
 
 #terragrunt run --all plan --filter 'deployments/dev/us-west-2/core/prom-grafana-stack/' -out-dir=tfplan
-#terragrunt run --all apply --filter 'deployments/dev/us-west-2/core/prom-grafana-stack/' --parallelism=4  -out-dir=tfplan
+#terragrunt run --all apply --filter 'deployments/dev/us-west-2/core/prom-grafana-stack/' -out-dir=tfplan
+#terragrunt run --all destroy --filter 'deployments/dev/us-west-2/core/prom-grafana-stack/'
 
-#terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/prom-grafana-stack/'
-#terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/kubernetes/'
-#terragrunt run --all destroy  --filter 'deployments/dev/us-west-2/core/main/'
+
 
 #terragrunt run --all output --filter 'base/dev/global/core/**' 
 #terragrunt state list --all  --filter 'base/dev/global/core/**' 
@@ -74,11 +53,6 @@ services:
 #terragrunt run-all output --terragrunt-non-interactive --terragrunt-working-dir infra-code/deployment/dev/us-west-2/core/kubernetes
 #terragrunt run-all init --terragrunt-non-interactive --terragrunt-working-dir infra-code/deployment/dev/us-west-2/core/ --terragrunt-log-level debug --terragrunt-debug
 
-#terragrunt run-all init -migrate-state --terragrunt-working-dir infra-code/deployment/dev/us-west-2/core/
-#terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir infra-code/deployment/dev/us-west-2/core
-#terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir infra-code/deployment/dev/us-west-2/core/kubernetes
-#terragrunt run-all state list  --terragrunt-non-interactive --terragrunt-working-dir infra-code/deployment/dev/us-west-2/projects/raffle
-#To remove a lock go to dynamo table and remove the item with info column
 
 #aws sts assume-role --role-arn "arn:aws:iam::324711057459:role/Developer" --role-session-name AWSCLI-Session  --duration-seconds 43200
 #aws sts assume-role --role-arn "arn:aws:iam::324711057459:role/Developer" --role-session-name Developer_Session --profile AdminSSO
@@ -88,7 +62,7 @@ services:
 #kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 #kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.4.2/components.yaml
 
-#kubectl -n dev-prom-grafana-stack  port-forward svc/kube-prometheus-stack-grafana 3000:80 &
+
 
 #ps -ef | grep port-forward
 #kubectl proxy
@@ -101,7 +75,10 @@ services:
 #ACCESS TO HEADLAMP DASHBOARD
 #kubectl port-forward -n dev-kube-monitoring deployment/dev-headlamp 8080:4466 &
 #kubectl -n dev-kube-monitoring create token dev-headlamp-admin --duration=45000s
-#
+
+
+#ACCESS TO GRAFANA DASHBOARD
+#kubectl -n  dev-kube-monitoring port-forward svc/dev-kube-prometheus-stack-grafana 3000:80 &
 
 #terragrunt run-all state rm module.module_kubernetes.aws_eks_cluster.eks_cluster --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
 #terragrunt run-all state rm module.module_core_setup_kubernetes.data.aws_eks_cluster_auth.aws_eks_cluster --terragrunt-non-interactive --terragrunt-working-dir deployment/dev/us-west-2/core/kubernetes
@@ -119,3 +96,4 @@ services:
 
 
  #terragrunt run  state rm kubernetes_namespace_v1.namespaces[\"kube-monitoring\"] --filter 'deployments/dev/us-west-2/core/kubernetes/setup'
+ #terragrunt run  state rm helm_release.kube-prometheus-stack[\"0"\] --filter 'deployments/dev/us-west-2/core/prom-grafana-stack'

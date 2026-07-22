@@ -9,6 +9,7 @@ locals {
 
 #https://github.com/kubernetes-retired/dashboard
 resource "helm_release" "kubernetes-dashboard" {
+  count      = 0
 
   name = local.dashboard_name
 
@@ -120,4 +121,35 @@ YAML
     helm_release.kubernetes-dashboard,
     data.aws_eks_node_groups.eks_cluster_node_groups
   ]
+}
+
+
+
+data "kubernetes_service_v1" "kube_dashboard_service_kong_proxy" {
+  metadata {
+    name      = "${local.dashboard_name}-kong-proxy"
+    namespace = local.dashboard_namespace
+  }
+
+  # Forces Terraform to wait until the Helm chart finishes deploying the resource
+  depends_on = [helm_release.kubernetes-dashboard]
+}
+
+
+resource "cloudflare_dns_record" "kube_dashboard_loadbalancer_dns_record" {
+  count   = 1
+  zone_id = data.cloudflare_zone.infra_zone.id
+  name    = "kube-dashboard.${var.master_domain}"
+  ttl     = 1
+  type    = "CNAME"
+  comment = "Kubernetes Dashboard Domain verification record"
+  content = data.kubernetes_service_v1.kube_dashboard_service_kong_proxy.status[0].load_balancer[0].ingress[0].hostname
+  proxied = true
+
+  # tags = toset([
+  #   for key, value in merge(local.tags, {
+  #     Name = "grafana.${var.master_domain}"
+  #   }) : "${key}:${value}"
+  # ])
+  depends_on = [ helm_release.kubernetes-dashboard ]
 }

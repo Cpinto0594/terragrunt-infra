@@ -133,3 +133,11 @@ resource "kubernetes_cluster_role_binding_v1" "kubernetes_cluster_role_binding" 
     kubernetes_namespace_v1.namespaces
   ]
 }
+
+
+
+data "cloudflare_zone" "infra_zone" {
+  filter = {
+    name = var.master_domain
+  }
+}

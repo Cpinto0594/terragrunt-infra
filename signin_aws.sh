@@ -43,9 +43,10 @@ if ! grep -q "^\[profile $ADMIN_USER_SSO_PROFILE\]" "$HOME/.aws/config"; then
     LOGGED_IN_SSO=true
 fi
 
-if [ -z "$SSO_AUTH_RESPONSE" ]; then
+if [ -z "$SSO_AUTH_RESPONSE" ] && [ "$LOGGED_IN_SSO" != true ]; then
     echo "Error: Failed to get caller identity. Signing in to AWS SSO..."
     aws sso login --profile $ADMIN_USER_SSO_PROFILE
+    LOGGED_IN_SSO=true
     SSO_AUTH_RESPONSE=$(aws sts get-caller-identity --profile $ADMIN_USER_SSO_PROFILE)
     if [ -z "$SSO_AUTH_RESPONSE" ]; then
         echo "Error: Failed to get caller identity after AWS SSO login."

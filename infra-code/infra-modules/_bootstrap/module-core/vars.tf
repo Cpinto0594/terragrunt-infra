@@ -85,9 +85,11 @@ variable "managed_infra_users" {
 variable "route53_zones" {
   description = "Route53 Zones"
   type = any
+  default = {}
 }
 
 variable "route53_zone_records" {
   description = "Route53 Zone Records"
   type = any
+  default = {}
 }

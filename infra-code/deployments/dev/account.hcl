@@ -52,5 +52,9 @@ locals {
     tls = {
       version = "4.3.0"
     }
+
+    cloudflare = {
+      version = "~> 5"
+    }
   }
 }

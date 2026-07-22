@@ -23,6 +23,11 @@ variable  "dns_domain" {
   type = string
 }
 
+variable  "master_domain" {
+  type = string
+}
+
+
 variable  "kube_cluster_name" {
   type = string
 }

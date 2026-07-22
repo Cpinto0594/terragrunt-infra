@@ -55,6 +55,10 @@ terraform {
       source = "hashicorp/tls"
       version = "${local.providers.tls.version}"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "${local.providers.cloudflare.version}"
+    }
   }
 }
 provider "aws" {
@@ -62,6 +66,10 @@ provider "aws" {
   assume_role {
     role_arn    =  "arn:aws:iam::${local.account_vars.locals.account_id}:role/${local.account_vars.locals.tg_role_name}"
   }
+}
+
+provider "cloudflare" {
+  api_token = ""
 }
 EOF
 }
