@@ -1,7 +1,7 @@
 
 locals {
   terra_infra_repo    = local.region_vars.locals.infra_modules_repo
-  terra_mod_name = "infra-modules/module-ssm"
+  terra_mod_name = "infra-modules/core-modules/module-ssm"
   terra_mod_version = "v0.0.1"
 
   account_vars     = read_terragrunt_config(find_in_parent_folders("account.hcl"))

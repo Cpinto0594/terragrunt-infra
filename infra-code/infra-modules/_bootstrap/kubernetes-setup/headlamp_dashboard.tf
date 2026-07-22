@@ -6,6 +6,8 @@ locals {
   headlamp_certificate_name        = "${var.environment}-headlamp-certificate"
   headlamp_certificate_secret_name = "${var.environment}-headlamp-certificate-secret-tls"
   headlamp_service_name            = "${var.environment}-headlamp"
+
+  headlamp_resource_enabled         = 1
 }
 
 
@@ -13,6 +15,7 @@ locals {
 # Generates an Apache htpasswd file content (Username: admin / Password: MySecurePassword123)
 # To generate a custom one, use the shell command: htpasswd -nb user pass
 resource "kubernetes_secret_v1" "basic_auth" {
+  count = local.headlamp_resource_enabled
   metadata {
     name      = local.basic_auth_secret_name
     namespace = local.namespace_name
@@ -26,6 +29,8 @@ resource "kubernetes_secret_v1" "basic_auth" {
 
 # 3. Primary Helm deployment for Headlamp
 resource "helm_release" "headlamp" {
+  count      = local.headlamp_resource_enabled
+
   name       = local.headlamp_service_name
   repository = "https://kubernetes-sigs.github.io/headlamp"
   chart      = "headlamp"
@@ -96,6 +101,7 @@ resource "helm_release" "headlamp" {
 
 ########## TEMPORAL WHILE THE AWS ROUTE 53 REGISTRATION IS NOT DONE ##########
 data "kubernetes_service_v1" "headlamp_service" {
+  count = local.headlamp_resource_enabled
   metadata {
     name      = local.headlamp_service_name
     namespace = local.namespace_name
@@ -107,13 +113,13 @@ data "kubernetes_service_v1" "headlamp_service" {
 
 
 resource "cloudflare_dns_record" "headlamp_loadbalancer_dns_record" {
-  count   = 1
+  count   = local.headlamp_resource_enabled
   zone_id = data.cloudflare_zone.infra_zone.id
   name    = "headlamp.${local.master_domain}"
   ttl     = 1
   type    = "CNAME"
   comment = "Headlamp Domain verification record"
-  content = data.kubernetes_service_v1.headlamp_service.status[0].load_balancer[0].ingress[0].hostname
+  content = data.kubernetes_service_v1.headlamp_service[0].status[0].load_balancer[0].ingress[0].hostname
   proxied = true
 
   # tags = toset([

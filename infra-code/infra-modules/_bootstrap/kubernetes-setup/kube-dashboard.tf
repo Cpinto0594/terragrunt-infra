@@ -5,11 +5,12 @@ locals {
   dashboard_ingress            = local.dashboard_name
   dashboard_ingress_tls_secret = "${local.dashboard_name}-tls"
   domain                       = "dashboard.${var.r53_domain_name}"
+  dashboard_resource_enabled   = 0
 }
 
 #https://github.com/kubernetes-retired/dashboard
 resource "helm_release" "kubernetes-dashboard" {
-  count      = 0
+  count = local.dashboard_resource_enabled
 
   name = local.dashboard_name
 
@@ -44,10 +45,10 @@ resource "helm_release" "kubernetes-dashboard" {
     },
     {
       name  = "kong.proxy.type"
-      value = "LoadBalancer" 
+      value = "LoadBalancer"
       #set to loadbalancer to expose the dashboard externally, set to ClusterIP to expose it internally only
-    # then get the external ip of the loadbalancer and create a route53 record to point to it, then access the dashboard via the route53 record
-    # kubectl get svc dev-kubernetes-dashboard-kong-proxy -n dev-kube-monitoring -w
+      # then get the external ip of the loadbalancer and create a route53 record to point to it, then access the dashboard via the route53 record
+      # kubectl get svc dev-kubernetes-dashboard-kong-proxy -n dev-kube-monitoring -w
     },
     {
       name  = "kong.proxy.http.enabled"
@@ -64,6 +65,7 @@ resource "helm_release" "kubernetes-dashboard" {
 
 
 resource "kubectl_manifest" "ingress_for_kube_dashboard" {
+  count     = local.dashboard_resource_enabled
   yaml_body = <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -104,6 +106,7 @@ EOF
 
 
 resource "kubectl_manifest" "dashboard_tls_cert_secret" {
+  count         = local.dashboard_resource_enabled
   apply_only    = true
   ignore_fields = ["data", "annotations"]
   yaml_body     = <<YAML
@@ -126,6 +129,8 @@ YAML
 
 
 data "kubernetes_service_v1" "kube_dashboard_service_kong_proxy" {
+  count = local.dashboard_resource_enabled
+  
   metadata {
     name      = "${local.dashboard_name}-kong-proxy"
     namespace = local.dashboard_namespace
@@ -137,13 +142,14 @@ data "kubernetes_service_v1" "kube_dashboard_service_kong_proxy" {
 
 
 resource "cloudflare_dns_record" "kube_dashboard_loadbalancer_dns_record" {
-  count   = 1
+  count   = local.dashboard_resource_enabled
+
   zone_id = data.cloudflare_zone.infra_zone.id
   name    = "kube-dashboard.${var.master_domain}"
   ttl     = 1
   type    = "CNAME"
   comment = "Kubernetes Dashboard Domain verification record"
-  content = data.kubernetes_service_v1.kube_dashboard_service_kong_proxy.status[0].load_balancer[0].ingress[0].hostname
+  content = data.kubernetes_service_v1.kube_dashboard_service_kong_proxy[0].status[0].load_balancer[0].ingress[0].hostname
   proxied = true
 
   # tags = toset([
@@ -151,5 +157,5 @@ resource "cloudflare_dns_record" "kube_dashboard_loadbalancer_dns_record" {
   #     Name = "grafana.${var.master_domain}"
   #   }) : "${key}:${value}"
   # ])
-  depends_on = [ helm_release.kubernetes-dashboard ]
+  depends_on = [helm_release.kubernetes-dashboard, data.kubernetes_service_v1.kube_dashboard_service_kong_proxy]
 }
